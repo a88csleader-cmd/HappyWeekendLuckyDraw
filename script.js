@@ -1,4 +1,4 @@
-const API="https://script.google.com/macros/s/AKfycbxDZubHlhv3TSxg_YEg9cgygtFiXf_deJnKr-zEMRxb4rBQIasec5EUvoWvN1UFrhkABQ/exec";
+const API="https://script.google.com/macros/s/AKfycbxZDBqphHY-C3nwElZ7grUq5qVHUrndzHgNUzsvUjd58JCnJ4OGmY5j2vqOCvE5kXsPTg/exec";
 
 const prizes=[
 "200 บาท",
