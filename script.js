@@ -1,143 +1,78 @@
-const API="https://script.google.com/macros/s/AKfycbxZDBqphHY-C3nwElZ7grUq5qVHUrndzHgNUzsvUjd58JCnJ4OGmY5j2vqOCvE5kXsPTg/exec";
+// HappyWeekendLuckyDraw/script.js
 
-const prizes=[
-"200 บาท",
-"150 บาท",
-"100 บาท",
-"50 บาท",
-"25 บาท",
-"ไม่ได้ของรางวัล"
-];
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/YOUR_WEB_APP_ID_HERE/exec';  // เปลี่ยนเป็น URL จริง
 
-let angle=0;
-let canvas;
-let ctx;
+const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
 
-document.addEventListener("DOMContentLoaded",function(){
+let pg_intervalId = null;
+let pg_selectedPrize = "ไม่ได้ของรางวัล";
 
-canvas=document.getElementById("wheel");
-ctx=canvas.getContext("2d");
+const pg_startBtn      = document.getElementById('pg-start-btn');
+const pg_prizeDisplay  = document.getElementById('pg-prize-display');
+const pg_usernameInput = document.getElementById('pg-username');
+const pg_statusDiv     = document.getElementById('pg-status');
 
-drawWheel();
-
-const spinBtn=document.getElementById("spinBtn");
-
-spinBtn.addEventListener("click",spin);
-
-});
-
-function drawWheel(){
-
-const radius=200;
-const slice=2*Math.PI/prizes.length;
-
-ctx.clearRect(0,0,400,400);
-
-for(let i=0;i<prizes.length;i++){
-
-ctx.beginPath();
-
-ctx.moveTo(200,200);
-
-ctx.arc(
-200,
-200,
-radius,
-i*slice + angle*Math.PI/180,
-(i+1)*slice + angle*Math.PI/180
-);
-
-ctx.fillStyle=i%2?"#ff9800":"#ff5722";
-
-ctx.fill();
-
-ctx.fillStyle="white";
-ctx.font="16px Arial";
-ctx.textAlign="center";
-
-ctx.fillText(prizes[i],200,100);
-
+async function pg_fetchPrize() {
+  try {
+    const response = await fetch(PG_WEB_APP_URL);
+    if (!response.ok) throw new Error("เชื่อมต่อไม่ได้");
+    const data = await response.json();
+    return data.success ? data.prize : "ไม่ได้ของรางวัล (ระบบขัดข้อง)";
+  } catch (err) {
+    console.error(err);
+    return "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
+  }
 }
 
+function pg_hasPlayed(username) {
+  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
+  return played[username.toLowerCase()];
 }
 
-async function spin(){
-
-const username=document.getElementById("username").value;
-
-if(!username){
-
-alert("กรอก username");
-
-return;
-
+function pg_recordPlay(username, prize) {
+  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
+  played[username.toLowerCase()] = prize;
+  localStorage.setItem('pg_playedUsers', JSON.stringify(played));
 }
 
-try{
+if (pg_startBtn) {
+  pg_startBtn.addEventListener('click', async () => {
+    const username = pg_usernameInput.value.trim();
+    if (!username) {
+      alert("กรุณาใส่ยูสเซอร์เนมก่อนนะคะ");
+      return;
+    }
 
-const res=await fetch(API+"?username="+encodeURIComponent(username));
+    const lower = username.toLowerCase();
 
-const data=await res.json();
+    if (pg_hasPlayed(lower)) {
+      pg_prizeDisplay.innerHTML = `คุณเล่นแล้ว ได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_hasPlayed(lower)}</span>`;
+      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
+      pg_startBtn.disabled = true;
+      return;
+    }
 
-console.log(data);
+    pg_prizeDisplay.textContent = "กำลังสุ่มรางวัล...";
+    pg_startBtn.textContent = "กำลังสุ่ม...";
+    pg_startBtn.disabled = true;
 
-if(!data.success){
+    pg_intervalId = setInterval(() => {
+      const randPrize = pg_prizes[Math.floor(Math.random() * pg_prizes.length)];
+      pg_prizeDisplay.textContent = randPrize;
+    }, 80);
 
-alert(data.error);
+    pg_selectedPrize = await pg_fetchPrize();
 
-return;
+    setTimeout(() => {
+      clearInterval(pg_intervalId);
+      pg_prizeDisplay.innerHTML = `ยินดีด้วย! คุณได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_selectedPrize}</span>`;
+      
+      pg_recordPlay(lower, pg_selectedPrize);
 
-}
+      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
+      pg_startBtn.disabled = true;
+    }, 3000);
+  });
 
-spinWheel(data.prize);
-
-document.getElementById("result").innerText="คุณได้ "+data.prize;
-
-}catch(err){
-
-console.error(err);
-
-alert("เชื่อมต่อ server ไม่ได้");
-
-}
-
-}
-
-function spinWheel(prize){
-
-const index=prizes.indexOf(prize);
-
-const slice=360/prizes.length;
-
-const target=360*5 + (360 - index*slice);
-
-let start=angle;
-let end=start+target;
-
-let startTime=null;
-
-function animate(time){
-
-if(!startTime) startTime=time;
-
-let progress=time-startTime;
-
-let duration=4000;
-
-let percent=Math.min(progress/duration,1);
-
-angle=start+(end-start)*(1-Math.pow(1-percent,3));
-
-drawWheel();
-
-if(percent<1){
-
-requestAnimationFrame(animate);
-
-}
-
-}
-
-requestAnimationFrame(animate);
-
+  pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
 }
