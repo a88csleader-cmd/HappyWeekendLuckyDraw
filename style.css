@@ -1,52 +1,71 @@
-body{
-
-font-family:Arial;
-background:#fff7f0;
-text-align:center;
-padding:40px;
-
+/* HappyWeekendLuckyDraw/style.css */
+#prize-game-container {
+  max-width: 420px;
+  margin: 20px auto;
+  padding: 25px;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  text-align: center;
+  font-family: Tahoma, "Leelawadee UI", sans-serif;
 }
 
-h1{
-
-color:#ff5722;
-
+#prize-game-container h2 {
+  font-size: 26px;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-#wheel{
-
-border:10px solid #ff9800;
-border-radius:50%;
-margin-top:20px;
-
+#prize-game-container input {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  margin: 15px 0;
+  text-align: center;
+  background: rgba(255,255,255,0.9);
+  color: #333;
 }
 
-button{
-
-margin-top:20px;
-background:#ff5722;
-border:none;
-color:white;
-padding:15px 40px;
-font-size:20px;
-border-radius:10px;
-cursor:pointer;
-
+#prize-game-container button {
+  width: 100%;
+  padding: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #ffcc00;
+  color: #222;
 }
 
-input{
-
-padding:10px;
-font-size:16px;
-border-radius:5px;
-border:1px solid #ccc;
-
+#prize-game-container button:hover:not(:disabled) {
+  background: #ffeb3b;
+  transform: scale(1.03);
 }
 
-#result{
+#prize-game-container button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-margin-top:20px;
-font-size:24px;
-font-weight:bold;
+#pg-prize-display {
+  font-size: 24px;
+  font-weight: bold;
+  min-height: 70px;
+  line-height: 1.4;
+  margin: 25px 0;
+  padding: 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  border: 2px solid #ffcc00;
+}
 
+#pg-status {
+  font-size: 15px;
+  opacity: 0.9;
+  margin-top: 15px;
 }
