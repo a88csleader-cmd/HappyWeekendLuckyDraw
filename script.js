@@ -10,23 +10,25 @@ const prizes=[
 ];
 
 let angle=0;
+let canvas;
+let ctx;
 
-window.onload=function(){
+document.addEventListener("DOMContentLoaded",function(){
+
+canvas=document.getElementById("wheel");
+ctx=canvas.getContext("2d");
 
 drawWheel();
 
-};
+const spinBtn=document.getElementById("spinBtn");
+
+spinBtn.addEventListener("click",spin);
+
+});
 
 function drawWheel(){
 
-const canvas=document.getElementById("wheel");
-
-if(!canvas) return;
-
-const ctx=canvas.getContext("2d");
-
 const radius=200;
-
 const slice=2*Math.PI/prizes.length;
 
 ctx.clearRect(0,0,400,400);
@@ -51,8 +53,9 @@ ctx.fill();
 
 ctx.fillStyle="white";
 ctx.font="16px Arial";
+ctx.textAlign="center";
 
-ctx.fillText(prizes[i],140,200);
+ctx.fillText(prizes[i],200,100);
 
 }
 
@@ -70,9 +73,13 @@ return;
 
 }
 
-const res=await fetch(API+"?username="+username);
+try{
+
+const res=await fetch(API+"?username="+encodeURIComponent(username));
 
 const data=await res.json();
+
+console.log(data);
 
 if(!data.success){
 
@@ -82,11 +89,17 @@ return;
 
 }
 
-const prize=data.prize;
+spinWheel(data.prize);
 
-spinWheel(prize);
+document.getElementById("result").innerText="คุณได้ "+data.prize;
 
-document.getElementById("result").innerText="คุณได้ "+prize;
+}catch(err){
+
+console.error(err);
+
+alert("เชื่อมต่อ server ไม่ได้");
+
+}
 
 }
 
@@ -99,7 +112,6 @@ const slice=360/prizes.length;
 const target=360*5 + (360 - index*slice);
 
 let start=angle;
-
 let end=start+target;
 
 let startTime=null;
