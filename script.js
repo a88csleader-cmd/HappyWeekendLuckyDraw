@@ -1,6 +1,6 @@
 // HappyWeekendLuckyDraw/script.js - อัปเดตเวอร์ชันล่าสุด
 
-const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxmt8Q2i4f0dWFgLl7dTyX-fr7OmTcO_bpeIwDxo_5fQ0j6NNVL4XDYhtiOZ1la-ogWmw/exec';  // เปลี่ยนเป็น URL Apps Script จริงของคุณ
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxmt8Q2i4f0dWFgLl7dTyX-fr7OmTcO_bpeIwDxo_5fQ0j6NNVL4XDYhtiOZ1la-ogWmw/exec';  
 
 const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
 
