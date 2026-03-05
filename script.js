@@ -1,6 +1,6 @@
-// HappyWeekendLuckyDraw/script.js
+// HappyWeekendLuckyDraw/script.js - อัปเดตเวอร์ชันล่าสุด
 
-const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxmt8Q2i4f0dWFgLl7dTyX-fr7OmTcO_bpeIwDxo_5fQ0j6NNVL4XDYhtiOZ1la-ogWmw/exec';  // เปลี่ยนเป็น URL จริง
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxmt8Q2i4f0dWFgLl7dTyX-fr7OmTcO_bpeIwDxo_5fQ0j6NNVL4XDYhtiOZ1la-ogWmw/exec';  // เปลี่ยนเป็น URL Apps Script จริงของคุณ
 
 const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
 
@@ -15,11 +15,15 @@ const pg_statusDiv     = document.getElementById('pg-status');
 async function pg_fetchPrize() {
   try {
     const response = await fetch(PG_WEB_APP_URL);
-    if (!response.ok) throw new Error("เชื่อมต่อไม่ได้");
+    if (!response.ok) throw new Error("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
     const data = await response.json();
-    return data.success ? data.prize : "ไม่ได้ของรางวัล (ระบบขัดข้อง)";
+    if (!data.success) {
+      console.error("Server error:", data.error);
+      return "ไม่ได้ของรางวัล (ระบบขัดข้อง)";
+    }
+    return data.prize;
   } catch (err) {
-    console.error(err);
+    console.error("Fetch error:", err);
     return "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
   }
 }
@@ -46,7 +50,8 @@ if (pg_startBtn) {
     const lower = username.toLowerCase();
 
     if (pg_hasPlayed(lower)) {
-      pg_prizeDisplay.innerHTML = `คุณเล่นแล้ว ได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_hasPlayed(lower)}</span>`;
+      const prevPrize = pg_hasPlayed(lower);
+      pg_prizeDisplay.innerHTML = `คุณเล่นแล้ว ได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${prevPrize}</span>`;
       pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
       pg_startBtn.disabled = true;
       return;
@@ -65,13 +70,13 @@ if (pg_startBtn) {
 
     setTimeout(() => {
       clearInterval(pg_intervalId);
-      pg_prizeDisplay.innerHTML = `ยินดีด้วย! คุณได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_selectedPrize}</span>`;
-      
+      pg_prizeDisplay.innerHTML = `ยินดีด้วย! คุณได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_selectedPrize}</span> 🎉`;
+
       pg_recordPlay(lower, pg_selectedPrize);
 
       pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
       pg_startBtn.disabled = true;
-    }, 3000);
+    }, 3000);  // หมุน 3 วินาที
   });
 
   pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
