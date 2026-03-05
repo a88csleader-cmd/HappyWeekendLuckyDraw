@@ -1,4 +1,4 @@
-const API="https://script.google.com/macros/s/AKfycbxZDBqphHY-C3nwElZ7grUq5qVHUrndzHgNUzsvUjd58JCnJ4OGmY5j2vqOCvE5kXsPTg/exec";
+const API="https://script.google.com/macros/s/AKfycbw4jM1oqbflLAK20A3L6rETuTOPRIdxjCtFCqB-TiSL5-lEOa1M5_UyWZr13QjP-MWpeQ/exec";
 
 document.addEventListener("DOMContentLoaded",function(){
 
