@@ -11,10 +11,19 @@ const prizes=[
 
 let angle=0;
 
-const canvas=document.getElementById("wheel");
-const ctx=canvas.getContext("2d");
+window.onload=function(){
+
+drawWheel();
+
+};
 
 function drawWheel(){
+
+const canvas=document.getElementById("wheel");
+
+if(!canvas) return;
+
+const ctx=canvas.getContext("2d");
 
 const radius=200;
 
@@ -43,13 +52,11 @@ ctx.fill();
 ctx.fillStyle="white";
 ctx.font="16px Arial";
 
-ctx.fillText(prizes[i],160,80);
+ctx.fillText(prizes[i],140,200);
 
 }
 
 }
-
-drawWheel();
 
 async function spin(){
 
@@ -107,7 +114,7 @@ let duration=4000;
 
 let percent=Math.min(progress/duration,1);
 
-angle=start+(end-start)*easeOut(percent);
+angle=start+(end-start)*(1-Math.pow(1-percent,3));
 
 drawWheel();
 
@@ -120,11 +127,5 @@ requestAnimationFrame(animate);
 }
 
 requestAnimationFrame(animate);
-
-}
-
-function easeOut(t){
-
-return 1-Math.pow(1-t,3);
 
 }
