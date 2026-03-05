@@ -1,76 +1,60 @@
-/* HappyWeekendLuckyDraw/style.css - อัปเดตเวอร์ชันล่าสุด */
-#prize-game-container {
-  max-width: 420px;
-  margin: 20px auto;
-  padding: 25px;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  text-align: center;
-  font-family: Tahoma, "Leelawadee UI", sans-serif;
+.lucky-container{
+text-align:center;
+padding:30px;
+background:white;
+max-width:420px;
+margin:auto;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+font-family:Arial;
 }
 
-#prize-game-container h2 {
-  font-size: 26px;
-  margin-bottom: 15px;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+.lucky-container h2{
+margin-bottom:20px;
 }
 
-#prize-game-container p {
-  margin-bottom: 15px;
-  font-size: 16px;
+input{
+width:80%;
+padding:12px;
+border:1px solid #ddd;
+border-radius:6px;
+margin-bottom:15px;
+font-size:16px;
 }
 
-#prize-game-container input {
-  width: 100%;
-  padding: 14px;
-  font-size: 18px;
-  border: none;
-  border-radius: 10px;
-  margin: 15px 0;
-  text-align: center;
-  background: rgba(255,255,255,0.9);
-  color: #333;
+button{
+background:#ff5722;
+color:white;
+border:none;
+padding:14px 30px;
+border-radius:8px;
+font-size:18px;
+cursor:pointer;
+transition:0.3s;
 }
 
-#prize-game-container button {
-  width: 100%;
-  padding: 16px;
-  font-size: 20px;
-  font-weight: bold;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #ffcc00;
-  color: #222;
+button:hover{
+background:#e64a19;
 }
 
-#prize-game-container button:hover:not(:disabled) {
-  background: #ffeb3b;
-  transform: scale(1.03);
+.gift-box{
+font-size:80px;
+margin:20px 0;
+transition:0.5s;
 }
 
-#prize-game-container button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.gift-box.open{
+transform:scale(1.3) rotate(10deg);
 }
 
-#pg-prize-display {
-  font-size: 24px;
-  font-weight: bold;
-  min-height: 70px;
-  line-height: 1.4;
-  margin: 25px 0;
-  padding: 20px;
-  background: rgba(0,0,0,0.3);
-  border-radius: 12px;
-  border: 2px solid #ffcc00;
+#loading{
+margin-top:15px;
+color:#888;
 }
 
-#pg-status {
-  font-size: 15px;
-  opacity: 0.9;
-  margin-top: 15px;
+#result{
+margin-top:20px;
+font-size:22px;
+font-weight:bold;
+color:#ff5722;
 }
