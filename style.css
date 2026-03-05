@@ -1,4 +1,4 @@
-/* HappyWeekendLuckyDraw/style.css */
+/* HappyWeekendLuckyDraw/style.css - อัปเดตเวอร์ชันล่าสุด */
 #prize-game-container {
   max-width: 420px;
   margin: 20px auto;
@@ -15,6 +15,11 @@
   font-size: 26px;
   margin-bottom: 15px;
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+#prize-game-container p {
+  margin-bottom: 15px;
+  font-size: 16px;
 }
 
 #prize-game-container input {
