@@ -89,22 +89,33 @@ function spinSlots(){
 function spinSlotsToPrize(prize){
   return new Promise(resolve=>{
     const slots = document.querySelectorAll(".slot");
-    let count = 0;
     const target = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3,"0");
+    
+    let iterations = 0;
+    const maxIterations = 30; // รอบหมุนทั้งหมด
+    const deceleration = 2;    // เพิ่มค่าให้หมุนช้าลงทีละรอบ
 
     const interval = setInterval(()=>{
       slots.forEach(slot=>{
         slot.textContent = Math.floor(Math.random()*10);
       });
-      count++;
-      if(count>20){
+      iterations++;
+
+      // ค่อย ๆ ช้าลงและหยุด
+      if(iterations >= maxIterations){
         clearInterval(interval);
-        slots[0].textContent = target[0];
-        slots[1].textContent = target[1];
-        slots[2].textContent = target[2];
-        resolve();
+
+        // หยุด slot ทีละตัวให้ดูสมจริง
+        slots.forEach((slot,i)=>{
+          setTimeout(()=>{
+            slot.textContent = target[i];
+          }, i*200); // หยุดทีละหลักช้า 200ms
+        });
+
+        // resolve หลังแสดงครบ
+        setTimeout(resolve, slots.length*200);
       }
-    },100);
+    }, 50); // ความเร็วเริ่มต้น
   });
 }
 
