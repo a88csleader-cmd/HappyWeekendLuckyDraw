@@ -1,5 +1,5 @@
 const API =
-"https://script.google.com/macros/s/AKfycbxvTFK0JOqepfohK2d-NGfHF8YwtjDtFAOnkAEgudkt0MCIpZ7NkcnBuItuMtXcg5EYGw/exec";
+"https://script.google.com/macros/s/AKfycbwlexuqWk4ZYmujOozf6rvPq-rjLJLxpzx6bphW6tli7C4kTs4F3IE0qlEcRuAaJuGTUg/exec";
 
 document
 .getElementById("pg-start-btn")
