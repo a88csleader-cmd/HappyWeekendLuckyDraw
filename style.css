@@ -1,108 +1,73 @@
-body{
-
-font-family: Arial;
-background:#f4f6fb;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-height:100vh;
-margin:0;
-
+body {
+  font-family: Arial;
+  background:#f4f6fb;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
 }
 
-#prize-game-container{
-
-background:white;
-
-padding:30px;
-border-radius:12px;
-
-width:320px;
-text-align:center;
-
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-
+#prize-game-container {
+  background:white;
+  padding:30px;
+  border-radius:12px;
+  width:320px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
 
-input{
-
-width:100%;
-padding:10px;
-margin:10px 0;
-
-border:1px solid #ddd;
-border-radius:6px;
-
+input {
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border:1px solid #ddd;
+  border-radius:6px;
 }
 
-button{
-
-width:100%;
-padding:12px;
-
-background:#ff4d4d;
-color:white;
-
-border:none;
-border-radius:6px;
-
-font-size:16px;
-cursor:pointer;
-
+button {
+  width:100%;
+  padding:12px;
+  background:#ff4d4d;
+  color:white;
+  border:none;
+  border-radius:6px;
+  font-size:16px;
+  cursor:pointer;
 }
 
-button:disabled{
-
-background:#aaa;
-
+button:disabled {
+  background:#aaa;
 }
 
-#slot-machine{
-
-display:flex;
-justify-content:center;
-
-margin:20px 0;
-
+#slot-machine {
+  display:flex;
+  justify-content:center;
+  margin:20px 0;
 }
 
-.slot{
-
-width:60px;
-height:60px;
-
-background:black;
-color:white;
-
-margin:5px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-font-size:32px;
-
-border-radius:6px;
-
+.slot {
+  width:60px;
+  height:60px;
+  background:black;
+  color:white;
+  margin:5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  border-radius:6px;
 }
 
-#pg-prize-display{
-
-font-size:18px;
-font-weight:bold;
-
-margin-top:10px;
-
+#pg-prize-display {
+  font-size:18px;
+  font-weight:bold;
+  margin-top:10px;
 }
 
-canvas{
-
-position:fixed;
-top:0;
-left:0;
-
-pointer-events:none;
-
+canvas {
+  position:fixed;
+  top:0;
+  left:0;
+  pointer-events:none;
 }
