@@ -105,4 +105,3 @@ document.addEventListener("DOMContentLoaded", function() {
     pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
   }
 });
-</script>
