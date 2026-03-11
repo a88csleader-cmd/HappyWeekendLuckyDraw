@@ -1,13 +1,12 @@
-// HappyWeekendLuckyDraw/script.js - เวอร์ชันแก้ไข error pg_hasPlayed not defined
+// script.js - เวอร์ชันแก้การเล่นซ้ำ + เช็คสิทธิ์จาก backend
 
-const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwPap2Qru4wxrLdm46302RYBNPTGQ2A04II1IofAa_gmgFe2sNMR8yBDCxRMDygf64zFg/exec'; // เปลี่ยนเป็น URL จริงของคุณ
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzaInQybly14EPy0oJ-MbK_Bkr1Iiosqg0UiLKTN598jFdWReJRAwVwINUmhA6WyLmI_w/exec'; // เปลี่ยนเป็น URL จริง
 
 const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
 
 let pg_intervalId = null;
 let pg_selectedPrize = "ไม่ได้ของรางวัล";
 
-// ฟังก์ชันช่วยเหลือ - ต้องกำหนดก่อนใช้งาน
 function pg_hasPlayed(username) {
   const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
   return played[username.toLowerCase()];
@@ -19,14 +18,11 @@ function pg_recordPlay(username, prize) {
   localStorage.setItem('pg_playedUsers', JSON.stringify(played));
 }
 
-// ดึง element หลังหน้าโหลดเสร็จ
-let pg_startBtn, pg_prizeDisplay, pg_usernameInput, pg_statusDiv;
-
 document.addEventListener("DOMContentLoaded", function() {
-  pg_startBtn      = document.getElementById('pg-start-btn');
-  pg_prizeDisplay  = document.getElementById('pg-prize-display');
-  pg_usernameInput = document.getElementById('pg-username');
-  pg_statusDiv     = document.getElementById('pg-status');
+  const pg_startBtn      = document.getElementById('pg-start-btn');
+  const pg_prizeDisplay  = document.getElementById('pg-prize-display');
+  const pg_usernameInput = document.getElementById('pg-username');
+  const pg_statusDiv     = document.getElementById('pg-status');
 
   if (!pg_startBtn) {
     console.error("ไม่พบปุ่ม pg-start-btn");
@@ -42,16 +38,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const lower = username.toLowerCase();
 
-    // เช็คเล่นซ้ำ (ใช้ฟังก์ชันที่กำหนดไว้ด้านบน)
+    // เช็ค localStorage ก่อนเลย ถ้าเคยเล่นแล้วให้หยุดทันที
     const previousPrize = pg_hasPlayed(lower);
     if (previousPrize) {
-      pg_prizeDisplay.innerHTML = `คุณเล่นแล้ว ได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${previousPrize}</span>`;
+      pg_prizeDisplay.textContent = "คุณเล่นแล้ว ได้ " + previousPrize;
       pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
       pg_startBtn.disabled = true;
       return;
     }
 
-    pg_prizeDisplay.textContent = "กำลังสุ่มรางวัล...";
+    pg_prizeDisplay.textContent = "กำลังตรวจสอบสิทธิ์และสุ่มรางวัล...";
     pg_startBtn.textContent = "กำลังสุ่ม...";
     pg_startBtn.disabled = true;
 
@@ -60,21 +56,45 @@ document.addEventListener("DOMContentLoaded", function() {
       pg_prizeDisplay.textContent = randPrize;
     }, 80);
 
-    // ดึงรางวัลจาก server
+    let prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
+    let isMemberOrAllowed = true;
+
     try {
-      const response = await fetch(`${PG_WEB_APP_URL}?username=${encodeURIComponent(username)}`);
+      const fullUrl = PG_WEB_APP_URL + '?username=' + encodeURIComponent(username);
+      const response = await fetch(fullUrl);
       const data = await response.json();
-      pg_selectedPrize = data.success ? data.prize : "ไม่ได้ของรางวัล (ระบบขัดข้อง)";
+
+      if (data.success) {
+        prizeText = data.prize;
+
+        // ถ้า backend บอกว่าไม่มีสิทธิ์
+        if (data.message && data.message.includes("คุณไม่ใช่สมาชิก")) {
+          isMemberOrAllowed = false;
+          prizeText = data.message; // แสดงข้อความจาก backend
+        }
+      } else {
+        prizeText = data.error || prizeText;
+      }
     } catch (err) {
-      console.error(err);
-      pg_selectedPrize = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
+      console.error("Fetch error:", err);
+      prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
     }
 
     setTimeout(() => {
       clearInterval(pg_intervalId);
-      pg_prizeDisplay.innerHTML = `ยินดีด้วย! คุณได้ <span style="color:#ffeb3b; text-shadow:0 0 10px #ffcc00;">${pg_selectedPrize}</span> 🎉`;
 
-      pg_recordPlay(lower, pg_selectedPrize);
+      if (!isMemberOrAllowed) {
+        // ไม่มีสิทธิ์ → แสดงข้อความ ไม่บันทึก localStorage
+        pg_prizeDisplay.textContent = prizeText;
+      } else {
+        // มีสิทธิ์ → แสดงรางวัลปกติ
+        pg_prizeDisplay.textContent = "ยินดีด้วย! คุณได้ " + prizeText;
+
+        // บันทึก localStorage เฉพาะเมื่อได้รางวัลจริง (ไม่ใช่ "ไม่ได้")
+        if (prizeText !== "ไม่ได้ของรางวัล") {
+          pg_recordPlay(lower, prizeText);
+        }
+      }
 
       pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
       pg_startBtn.disabled = true;
@@ -85,3 +105,4 @@ document.addEventListener("DOMContentLoaded", function() {
     pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
   }
 });
+</script>
