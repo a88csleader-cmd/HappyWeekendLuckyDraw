@@ -1,0 +1,121 @@
+<!-- Happy Weekend Lucky Draw - เวอร์ชันแก้ภาษาไทยเพี้ยน + JS ใน Blogger โดยตรง -->
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/a88csleader-cmd/HappyWeekendLuckyDraw@main/style.css">
+
+<div id="prize-game-container">
+  <h2>🎁 ลุ้นรางวัลเงินสด Happy Weekend!</h2>
+  <p>ใส่ยูสเซอร์เนมของคุณ (เล่นได้คนละ 1 ครั้ง)</p>
+
+  <input type="text" id="pg-username" placeholder="เช่น lan94774" autocomplete="off">
+
+  <button id="pg-start-btn">เริ่มสุ่มเลย!</button>
+
+  <div id="pg-prize-display">กดเริ่มเพื่อลุ้นรางวัล</div>
+
+  <div id="pg-status">กำลังเชื่อมต่อระบบ...</div>
+</div>
+
+<script>
+// โค้ด JS ล่าสุด - แสดงข้อความแจ้งเตือนเมื่อไม่มีสิทธิ์
+
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzaInQybly14EPy0oJ-MbK_Bkr1Iiosqg0UiLKTN598jFdWReJRAwVwINUmhA6WyLmI_w/exec'; // เปลี่ยนเป็น URL จริงของคุณ
+
+const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
+
+let pg_intervalId = null;
+let pg_selectedPrize = "ไม่ได้ของรางวัล";
+
+function pg_hasPlayed(username) {
+  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
+  return played[username.toLowerCase()];
+}
+
+function pg_recordPlay(username, prize) {
+  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
+  played[username.toLowerCase()] = prize;
+  localStorage.setItem('pg_playedUsers', JSON.stringify(played));
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const pg_startBtn      = document.getElementById('pg-start-btn');
+  const pg_prizeDisplay  = document.getElementById('pg-prize-display');
+  const pg_usernameInput = document.getElementById('pg-username');
+  const pg_statusDiv     = document.getElementById('pg-status');
+
+  if (!pg_startBtn) {
+    console.error("ไม่พบปุ่ม pg-start-btn");
+    return;
+  }
+
+  pg_startBtn.addEventListener('click', async () => {
+    const username = pg_usernameInput.value.trim();
+    if (!username) {
+      alert("กรุณาใส่ยูสเซอร์เนมก่อนนะคะ");
+      return;
+    }
+
+    const lower = username.toLowerCase();
+
+    const previousPrize = pg_hasPlayed(lower);
+    if (previousPrize) {
+      pg_prizeDisplay.textContent = "คุณเล่นแล้ว ได้ " + previousPrize;
+      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
+      pg_startBtn.disabled = true;
+      return;
+    }
+
+    pg_prizeDisplay.textContent = "กำลังตรวจสอบสิทธิ์...";
+    pg_startBtn.textContent = "กำลังตรวจสอบ...";
+    pg_startBtn.disabled = true;
+
+    let prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
+    let isMember = true;
+    let alertMessage = "";
+
+    try {
+      const fullUrl = PG_WEB_APP_URL + '?username=' + encodeURIComponent(username);
+      const response = await fetch(fullUrl);
+      const data = await response.json();
+
+      if (data.success) {
+        prizeText = data.prize;
+
+        // ถ้ามี message แสดงว่าไม่มีสิทธิ์ (จาก backend)
+        if (data.message && data.message.includes("คุณไม่ใช่สมาชิก")) {
+          isMember = false;
+          alertMessage = data.message || "คุณยังไม่มีสิทธิ์สุ่มรางวัล กรุณาติดต่อแอดมินเพื่อรับสิทธิ์นะคะ";
+        }
+      } else {
+        prizeText = data.error || prizeText;
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
+    }
+
+    setTimeout(() => {
+      clearInterval(pg_intervalId);
+
+      if (!isMember) {
+        // แสดงข้อความแจ้งเตือน ไม่หมุน ไม่บันทึก
+        pg_prizeDisplay.textContent = alertMessage;
+      } else {
+        // มีสิทธิ์ → แสดงผลรางวัลปกติ
+        pg_prizeDisplay.textContent = "ยินดีด้วย! คุณได้ " + prizeText;
+
+        if (prizeText !== "ไม่ได้ของรางวัล") {
+          pg_recordPlay(lower, prizeText);
+        }
+      }
+
+      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
+      pg_startBtn.disabled = true;
+    }, 1500); // ลดเวลาเหลือ 1.5 วินาที เพราะไม่ต้องหมุนถ้าไม่มีสิทธิ์
+  });
+
+  if (pg_statusDiv) {
+    pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
+  }
+});
+</script>
+<!-- End of Lucky Draw Game -->
