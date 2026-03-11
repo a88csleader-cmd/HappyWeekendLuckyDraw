@@ -1,4 +1,6 @@
-const API = "https://script.google.com/macros/s/AKfycbx9pwHSBW9KufFhfptXXGQ8c-OA-4qi4acH0dY03j3WhuOhVP2CG6RfgU5HjBsiLlombQ/exec";
+// script.js - เวอร์ชันสมบูรณ์ล่าสุด
+
+const API = "https://script.google.com/macros/s/AKfycbx9pwHSBW9KufFhfptXXGQ8c-OA-4qi4acH0dY03j3WhuOhVP2CG6RfgU5HjBsiLlombQ/exec"; // เปลี่ยนเป็น URL ของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
@@ -10,43 +12,45 @@ async function playGame() {
   const btn = document.getElementById("pg-start-btn");
   btn.disabled = true;
 
+  // --- ซ่อนข้อความรางวัลเก่าก่อนหมุน ---
+  const display = document.getElementById("pg-prize-display");
+  display.textContent = "กำลังหมุน...";
+  const oldLineBtn = document.getElementById("line-btn");
+  if(oldLineBtn) oldLineBtn.remove();
+
+  // --- เริ่มหมุน slot ทันทีแบบ random ---
   spinSlots();
 
   try {
     const res = await fetch(API + "?username=" + username);
     const data = await res.json();
 
-    setTimeout(() => {
+    if(!data.success){
+      setText(data.error);
+      btn.disabled = false;
+      return;
+    }
 
-      if(!data.success){
-        setText(data.error);
-        btn.disabled = false;
-        return;
-      }
+    if(data.played){
+      showPrizeNumber(data.prize); // แสดงตัวเลขที่เคยได้
+      setText("คุณเคยเล่นแล้ว ได้ " + formatPrize(data.prize));
+      btn.disabled = false;
+      return;
+    }
 
-      // --- เคยเล่นแล้ว ---
-      if(data.played){
-        showPrizeNumber(data.prize);
-        setText("คุณเคยเล่นแล้ว ได้ " + formatPrize(data.prize));
-        btn.disabled = false;
-        return;
-      }
+    // --- หมุน slot ไปหยุดที่รางวัลจริง ---
+    await spinSlotsToPrize(data.prize);
 
-      // --- ยังไม่เคยเล่น ---
-      spinSlotsToPrize(data.prize).then(()=>{
-        // แสดงรางวัล
-        if(data.prize === "ไม่ได้ของรางวัล"){
-          setText("เสียใจด้วยค่ะ คุณไม่ได้รางวัล");
-        } else {
-          setText("ยินดีด้วย! คุณได้ " + data.prize + " บาท\nแคปหน้าจอแล้วแจ้งแอดมินทาง LINE เพื่อรับของรางวัล");
-          confetti();
-          // เพิ่มปุ่มไป LINE
-          addLineButton();
-        }
-        btn.disabled = false;
-      });
+    // --- แสดงข้อความหลังหมุนจบ ---
+    if(data.prize === "ไม่ได้ของรางวัล"){
+      setText("เสียใจค่ะ คุณไม่ได้รางวัล");
+    } else {
+      setText("ยินดีด้วย! คุณได้ " + data.prize + " บาท\nแคปหน้าจอแล้วแจ้งแอดมินทาง LINE เพื่อรับของรางวัล");
+      confetti();
+      addLineButton();
+    }
 
-    },2500);
+    btn.disabled = false;
 
   } catch(err){
     setText("เกิดข้อผิดพลาด");
@@ -54,14 +58,15 @@ async function playGame() {
   }
 }
 
+// --- ฟังก์ชันแสดงข้อความ ---
 function setText(text){
   const display = document.getElementById("pg-prize-display");
   display.textContent = text;
-  // ลบปุ่ม LINE เก่าถ้ามี
   const oldBtn = document.getElementById("line-btn");
   if(oldBtn) oldBtn.remove();
 }
 
+// --- ฟังก์ชันโชว์ตัวเลขรางวัล ---
 function showPrizeNumber(prize){
   const slots = document.querySelectorAll(".slot");
   const numbers = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3,"0");
@@ -70,57 +75,63 @@ function showPrizeNumber(prize){
   slots[2].textContent = numbers[2];
 }
 
+// --- ฟังก์ชันจัดรูปแบบข้อความรางวัล ---
 function formatPrize(prize){
   return prize === "ไม่ได้ของรางวัล" ? "ไม่ได้รางวัล" : prize + " บาท";
 }
 
+// --- หมุน slot แบบ random ระหว่างรอผล ---
 function spinSlots(){
   const slots = document.querySelectorAll(".slot");
-  let count = 0;
-  const interval = setInterval(()=>{
-    slots.forEach(slot=>{
-      slot.textContent = Math.floor(Math.random()*10);
-    });
-    count++;
-    if(count>20) clearInterval(interval);
-  },100);
+  slots.forEach(slot => {
+    slot.textContent = Math.floor(Math.random()*10);
+  });
 }
 
+// --- หมุน slot ไปหยุดที่รางวัลจริง smoothly ---
 function spinSlotsToPrize(prize) {
   return new Promise(resolve => {
     const slots = document.querySelectorAll(".slot");
     const target = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3, "0");
-
+    
     let finishedSlots = 0;
 
     slots.forEach((slot, index) => {
       let count = 0;
-      const maxCount = 20 + index * 10; // แต่ละ slot หยุดไม่พร้อมกัน
+      const maxCount = 20 + index * 10; // slot แต่ละตัวหยุดไม่พร้อมกัน
       const interval = setInterval(() => {
         slot.textContent = Math.floor(Math.random() * 10);
         count++;
-        if (count >= maxCount) {
+        if(count >= maxCount){
           clearInterval(interval);
           slot.textContent = target[index]; // แสดงตัวเลขรางวัลจริง
           finishedSlots++;
-          if (finishedSlots === slots.length) {
+          if(finishedSlots === slots.length){
             resolve(); // ทุก slot หยุดแล้ว
           }
         }
-      }, 80); // ความเร็ว slot สามารถปรับได้
+      }, 80); // ความเร็วหมุนสามารถปรับได้
     });
   });
 }
 
+// --- Confetti effect ---
 function confetti(){
   const canvas = document.getElementById("confetti");
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
   const pieces = [];
   for(let i=0;i<120;i++){
-    pieces.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:8,speed:2+Math.random()*3});
+    pieces.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      size:8,
+      speed:2+Math.random()*3
+    });
   }
+
   let frame=0;
   const animation = setInterval(()=>{
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -135,6 +146,7 @@ function confetti(){
   },30);
 }
 
+// --- เพิ่มปุ่มแจ้ง LINE ---
 function addLineButton(){
   const container = document.getElementById("prize-game-container");
   const btn = document.createElement("a");
