@@ -1,4 +1,4 @@
-const PG_WEB_APP_URL = "YOUR_GOOGLE_SCRIPT_URL";
+const PG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwsfipN9vFHksyWW3u43zLc3HzfqCrtaQkNFx6tr6PIpQKklQI-QfLwrnaqEIOjcqxy8w/exec";
 
 const slots = document.querySelectorAll(".slot");
 
