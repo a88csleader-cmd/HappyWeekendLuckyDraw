@@ -5,6 +5,7 @@ document
 .getElementById("pg-start-btn")
 .addEventListener("click", playGame);
 
+
 async function playGame(){
 
 const username =
@@ -43,16 +44,22 @@ showPrizeNumber(data.prize);
 if(data.played){
 
 setText(
-"คุณเคยเล่นแล้ว ได้ " + data.prize
+"คุณเคยเล่นแล้ว ได้ " + formatPrize(data.prize)
+);
+
+}else{
+
+if(data.prize === "ไม่ได้ของรางวัล"){
+
+setText(
+"เสียใจด้วยค่ะ คุณไม่ได้รางวัล"
 );
 
 }else{
 
 setText(
-"ยินดีด้วย! คุณได้ " + data.prize
+"ยินดีด้วย! คุณได้ " + data.prize + " บาท"
 );
-
-if(data.prize !== "ไม่ได้ของรางวัล"){
 
 confetti();
 
@@ -67,12 +74,13 @@ btn.disabled = false;
 }catch(err){
 
 setText("เกิดข้อผิดพลาด");
-
 btn.disabled=false;
 
 }
 
 }
+
+
 
 function setText(t){
 
@@ -81,6 +89,8 @@ document
 .textContent = t;
 
 }
+
+
 
 function spinSlots(){
 
@@ -111,26 +121,47 @@ clearInterval(interval);
 
 }
 
+
+
 function showPrizeNumber(prize){
 
 const slots =
 document.querySelectorAll(".slot");
 
-let numbers = "000";
+let numbers;
 
-if(prize !== "ไม่ได้ของรางวัล"){
+if(prize === "ไม่ได้ของรางวัล"){
 
-numbers =
-Math.floor(100 + Math.random()*900)
-.toString();
+numbers = "000";
+
+}else{
+
+numbers = prize.toString();
 
 }
+
+/* ให้ครบ 3 หลัก */
+numbers = numbers.padStart(3,"0");
 
 slots[0].textContent = numbers[0];
 slots[1].textContent = numbers[1];
 slots[2].textContent = numbers[2];
 
 }
+
+
+
+function formatPrize(prize){
+
+if(prize === "ไม่ได้ของรางวัล"){
+return "ไม่ได้รางวัล";
+}
+
+return prize + " บาท";
+
+}
+
+
 
 function confetti(){
 
