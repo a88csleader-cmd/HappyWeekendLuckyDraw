@@ -1,68 +1,75 @@
-body {
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  background: linear-gradient(135deg, #ff9966, #ff5e62);
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+body{
+font-family:sans-serif;
+background:linear-gradient(135deg,#ff9966,#ff5e62);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
 }
 
-#prize-game-container {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 320px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+#prize-game-container{
+background:white;
+padding:30px;
+border-radius:12px;
+width:320px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
-h2 {
-  margin-top: 0;
-  color: #ff5e62;
+#pg-username{
+width:90%;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
-#pg-username {
-  width: 90%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+#pg-start-btn{
+margin-top:15px;
+padding:12px;
+width:100%;
+border:none;
+border-radius:6px;
+background:#ff5e62;
+color:white;
+font-size:16px;
+cursor:pointer;
 }
 
-#pg-start-btn {
-  margin-top: 15px;
-  padding: 12px;
-  width: 100%;
-  border: none;
-  border-radius: 6px;
-  background: #ff5e62;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
+#pg-start-btn:disabled{
+background:#aaa;
 }
 
-#pg-start-btn:hover {
-  background: #e94a50;
+#slot-machine{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:20px;
 }
 
-#pg-start-btn:disabled {
-  background: #aaa;
-  cursor: not-allowed;
+.slot{
+width:60px;
+height:60px;
+background:black;
+color:#00ff90;
+font-size:32px;
+display:flex;
+justify-content:center;
+align-items:center;
+border-radius:6px;
+font-weight:bold;
 }
 
-#pg-prize-display {
-  margin-top: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #333;
-  min-height: 32px;
+#pg-prize-display{
+margin-top:20px;
+font-size:20px;
+font-weight:bold;
 }
 
-#pg-status {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #777;
+#confetti{
+position:fixed;
+top:0;
+left:0;
+pointer-events:none;
 }
