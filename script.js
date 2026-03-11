@@ -92,7 +92,10 @@ document
 .addEventListener("click",async()=>{
 
 const username =
-document.getElementById("pg-username").value.trim();
+document.getElementById("pg-username")
+.value
+.trim()
+.toLowerCase();
 
 if(!username){
 
