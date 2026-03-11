@@ -1,6 +1,6 @@
 // HappyWeekendLuckyDraw/script.js - เวอร์ชันแก้ไข error pg_hasPlayed not defined
 
-const PG_WEB_APP_URL = 'https://script.google.com/macros/s/xxxxxxxxxxxx/exec'; // เปลี่ยนเป็น URL จริงของคุณ
+const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwPap2Qru4wxrLdm46302RYBNPTGQ2A04II1IofAa_gmgFe2sNMR8yBDCxRMDygf64zFg/exec'; // เปลี่ยนเป็น URL จริงของคุณ
 
 const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
 
