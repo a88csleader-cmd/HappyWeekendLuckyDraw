@@ -86,36 +86,29 @@ function spinSlots(){
   },100);
 }
 
-function spinSlotsToPrize(prize){
-  return new Promise(resolve=>{
+function spinSlotsToPrize(prize) {
+  return new Promise(resolve => {
     const slots = document.querySelectorAll(".slot");
-    const target = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3,"0");
-    
-    let iterations = 0;
-    const maxIterations = 30; // รอบหมุนทั้งหมด
-    const deceleration = 2;    // เพิ่มค่าให้หมุนช้าลงทีละรอบ
+    const target = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3, "0");
 
-    const interval = setInterval(()=>{
-      slots.forEach(slot=>{
-        slot.textContent = Math.floor(Math.random()*10);
-      });
-      iterations++;
+    let finishedSlots = 0;
 
-      // ค่อย ๆ ช้าลงและหยุด
-      if(iterations >= maxIterations){
-        clearInterval(interval);
-
-        // หยุด slot ทีละตัวให้ดูสมจริง
-        slots.forEach((slot,i)=>{
-          setTimeout(()=>{
-            slot.textContent = target[i];
-          }, i*200); // หยุดทีละหลักช้า 200ms
-        });
-
-        // resolve หลังแสดงครบ
-        setTimeout(resolve, slots.length*200);
-      }
-    }, 50); // ความเร็วเริ่มต้น
+    slots.forEach((slot, index) => {
+      let count = 0;
+      const maxCount = 20 + index * 10; // แต่ละ slot หยุดไม่พร้อมกัน
+      const interval = setInterval(() => {
+        slot.textContent = Math.floor(Math.random() * 10);
+        count++;
+        if (count >= maxCount) {
+          clearInterval(interval);
+          slot.textContent = target[index]; // แสดงตัวเลขรางวัลจริง
+          finishedSlots++;
+          if (finishedSlots === slots.length) {
+            resolve(); // ทุก slot หยุดแล้ว
+          }
+        }
+      }, 80); // ความเร็ว slot สามารถปรับได้
+    });
   });
 }
 
