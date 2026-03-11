@@ -1,51 +1,30 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Happy Weekend Lucky Draw</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
 <div id="prize-game-container">
+  <h2>🎁 Happy Weekend Lucky Draw</h2>
+  <p>ใส่ยูสเซอร์เนม (เล่นได้ 1 ครั้ง)</p>
+  <input type="text" id="pg-username" placeholder="เช่น lan94774">
+  <button id="pg-start-btn">เริ่มสุ่ม</button>
 
-<h2>🎁 Happy Weekend Lucky Draw</h2>
+  <div id="slot-machine">
+    <div class="slot">0</div>
+    <div class="slot">0</div>
+    <div class="slot">0</div>
+  </div>
 
-<p>ใส่ยูสเซอร์เนม (เล่นได้ 1 ครั้ง)</p>
+  <div id="pg-prize-display">กดเริ่มเพื่อลุ้นรางวัล</div>
 
-<input
-type="text"
-id="pg-username"
-placeholder="เช่น lan94774"
-/>
-
-<button id="pg-start-btn">
-เริ่มสุ่ม
-</button>
-
-<div id="slot-machine">
-
-<div class="slot">0</div>
-<div class="slot">0</div>
-<div class="slot">0</div>
-
-</div>
-
-<div id="pg-prize-display">
-กดเริ่มเพื่อลุ้นรางวัล
-</div>
-
-<canvas id="confetti"></canvas>
-
+  <canvas id="confetti"></canvas>
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
