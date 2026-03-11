@@ -1,107 +1,136 @@
-// script.js - เวอร์ชันแก้การเล่นซ้ำ + เช็คสิทธิ์จาก backend
+const PG_WEB_APP_URL = "YOUR_GOOGLE_SCRIPT_URL";
 
-const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzaInQybly14EPy0oJ-MbK_Bkr1Iiosqg0UiLKTN598jFdWReJRAwVwINUmhA6WyLmI_w/exec'; // เปลี่ยนเป็น URL จริง
+const slots = document.querySelectorAll(".slot");
 
-const pg_prizes = ["200 บาท", "150 บาท", "100 บาท", "50 บาท", "25 บาท", "ไม่ได้ของรางวัล"];
+function spinSlots(){
 
-let pg_intervalId = null;
-let pg_selectedPrize = "ไม่ได้ของรางวัล";
+return new Promise(resolve=>{
 
-function pg_hasPlayed(username) {
-  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
-  return played[username.toLowerCase()];
+let count = 0;
+
+const spin = setInterval(()=>{
+
+slots.forEach(s=>{
+s.textContent = Math.floor(Math.random()*10);
+});
+
+count++;
+
+if(count>30){
+clearInterval(spin);
+resolve();
 }
 
-function pg_recordPlay(username, prize) {
-  const played = JSON.parse(localStorage.getItem('pg_playedUsers') || '{}');
-  played[username.toLowerCase()] = prize;
-  localStorage.setItem('pg_playedUsers', JSON.stringify(played));
+},80);
+
+});
+
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  const pg_startBtn      = document.getElementById('pg-start-btn');
-  const pg_prizeDisplay  = document.getElementById('pg-prize-display');
-  const pg_usernameInput = document.getElementById('pg-username');
-  const pg_statusDiv     = document.getElementById('pg-status');
+function showPrizeNumber(prize){
 
-  if (!pg_startBtn) {
-    console.error("ไม่พบปุ่ม pg-start-btn");
-    return;
-  }
+const numbers = prize.replace(/\D/g,'');
 
-  pg_startBtn.addEventListener('click', async () => {
-    const username = pg_usernameInput.value.trim();
-    if (!username) {
-      alert("กรุณาใส่ยูสเซอร์เนมก่อนนะคะ");
-      return;
-    }
+if(numbers.length===0){
+slots.forEach(s=>s.textContent='0');
+return;
+}
 
-    const lower = username.toLowerCase();
+const digits = numbers.padStart(3,"0").split("");
 
-    // เช็ค localStorage ก่อนเลย ถ้าเคยเล่นแล้วให้หยุดทันที
-    const previousPrize = pg_hasPlayed(lower);
-    if (previousPrize) {
-      pg_prizeDisplay.textContent = "คุณเล่นแล้ว ได้ " + previousPrize;
-      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
-      pg_startBtn.disabled = true;
-      return;
-    }
+slots.forEach((s,i)=>{
+s.textContent = digits[i];
+});
 
-    pg_prizeDisplay.textContent = "กำลังตรวจสอบสิทธิ์และสุ่มรางวัล...";
-    pg_startBtn.textContent = "กำลังสุ่ม...";
-    pg_startBtn.disabled = true;
+}
 
-    pg_intervalId = setInterval(() => {
-      const randPrize = pg_prizes[Math.floor(Math.random() * pg_prizes.length)];
-      pg_prizeDisplay.textContent = randPrize;
-    }, 80);
+function confetti(){
 
-    let prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
-    let isMemberOrAllowed = true;
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
 
-    try {
-      const fullUrl = PG_WEB_APP_URL + '?username=' + encodeURIComponent(username);
-      const response = await fetch(fullUrl);
-      const data = await response.json();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-      if (data.success) {
-        prizeText = data.prize;
+let pieces = [];
 
-        // ถ้า backend บอกว่าไม่มีสิทธิ์
-        if (data.message && data.message.includes("คุณไม่ใช่สมาชิก")) {
-          isMemberOrAllowed = false;
-          prizeText = data.message; // แสดงข้อความจาก backend
-        }
-      } else {
-        prizeText = data.error || prizeText;
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      prizeText = "ไม่ได้ของรางวัล (เชื่อมต่อล้มเหลว)";
-    }
+for(let i=0;i<100;i++){
 
-    setTimeout(() => {
-      clearInterval(pg_intervalId);
+pieces.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+size:Math.random()*8+4,
+speed:Math.random()*3+2
+});
 
-      if (!isMemberOrAllowed) {
-        // ไม่มีสิทธิ์ → แสดงข้อความ ไม่บันทึก localStorage
-        pg_prizeDisplay.textContent = prizeText;
-      } else {
-        // มีสิทธิ์ → แสดงรางวัลปกติ
-        pg_prizeDisplay.textContent = "ยินดีด้วย! คุณได้ " + prizeText;
+}
 
-        // บันทึก localStorage เฉพาะเมื่อได้รางวัลจริง (ไม่ใช่ "ไม่ได้")
-        if (prizeText !== "ไม่ได้ของรางวัล") {
-          pg_recordPlay(lower, prizeText);
-        }
-      }
+function draw(){
 
-      pg_startBtn.textContent = "เล่นได้เพียงครั้งเดียว";
-      pg_startBtn.disabled = true;
-    }, 3000);
-  });
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  if (pg_statusDiv) {
-    pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
-  }
+pieces.forEach(p=>{
+ctx.fillStyle=`hsl(${Math.random()*360},100%,50%)`;
+ctx.fillRect(p.x,p.y,p.size,p.size);
+
+p.y+=p.speed;
+
+if(p.y>canvas.height)p.y=0;
+
+});
+
+requestAnimationFrame(draw);
+
+}
+
+draw();
+
+}
+
+document
+.getElementById("pg-start-btn")
+.addEventListener("click",async()=>{
+
+const username =
+document.getElementById("pg-username").value.trim();
+
+if(!username){
+
+alert("กรุณาใส่ username");
+
+return;
+}
+
+document.getElementById("pg-start-btn").disabled=true;
+
+await spinSlots();
+
+const res = await fetch(
+PG_WEB_APP_URL+"?username="+username
+);
+
+const data = await res.json();
+
+if(data.success){
+
+showPrizeNumber(data.prize);
+
+if(data.played){
+
+document.getElementById("pg-prize-display")
+.textContent="คุณเคยเล่นแล้ว ได้ "+data.prize;
+
+}else{
+
+document.getElementById("pg-prize-display")
+.textContent="ยินดีด้วย! คุณได้ "+data.prize;
+
+if(data.prize!=="ไม่ได้ของรางวัล"){
+confetti();
+}
+
+}
+
+}
+
 });
