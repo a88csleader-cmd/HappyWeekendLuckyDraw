@@ -1,4 +1,3 @@
-<script>
 // script.js - เวอร์ชันแก้การเล่นซ้ำ + เช็คสิทธิ์จาก backend
 
 const PG_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzaInQybly14EPy0oJ-MbK_Bkr1Iiosqg0UiLKTN598jFdWReJRAwVwINUmhA6WyLmI_w/exec'; // เปลี่ยนเป็น URL จริง
@@ -106,4 +105,3 @@ document.addEventListener("DOMContentLoaded", function() {
     pg_statusDiv.textContent = "พร้อมลุ้นแล้ว! ใส่ยูสเซอร์เนมเพื่อเริ่ม";
   }
 });
-</script>
