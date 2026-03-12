@@ -75,22 +75,30 @@ async function spinToResult(prize) {
   return new Promise(resolve => {
     stopRolling();
     const slots = document.querySelectorAll(".slot");
-    const target = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3, "0");
+    const target = prize === "ไม่ได้ของรางวัล" ? "0000" : prize.toString().padStart(4, "0");
+
+    // หลักหน่วย → สิบ → ร้อย → พัน
+    const order = [3,2,1,0]; // index ของ slots
 
     let finished = 0;
-    slots.forEach((slot, i) => {
+    order.forEach((i,index) => {
+      let slot = slots[i];
       let count = 0;
-      let max = 25 + i * 15;
+      let max = 25 + index*15; // ค่อยๆหยุดตามลำดับ
 
       const interval = setInterval(() => {
         slot.innerText = Math.floor(Math.random() * 10);
         count++;
-        if (count >= max) {
+        if(count >= max){
           clearInterval(interval);
-          slot.innerText = target[i];
-          finished++;
-          if (finished === slots.length) {
-            resolve();
+          // Near miss effect: หลักสุดท้าย (หน่วย) บางที +1
+          if(index===0 && Math.random()<0.5 && target[i]!="0"){
+            slot.innerText = (parseInt(target[i])+1)%10;
+            setTimeout(()=>{ slot.innerText=target[i]; finished++; if(finished===4) resolve(); }, 300);
+          } else {
+            slot.innerText = target[i];
+            finished++;
+            if(finished===4) resolve();
           }
         }
       }, 70);
@@ -165,10 +173,11 @@ function maskUser(user) {
   return user.slice(0, 2) + "***" + user.slice(-2);
 }
 
-function showPrizeNumber(prize) {
+function showPrizeNumber(prize){
   const slots = document.querySelectorAll(".slot");
-  const numbers = prize === "ไม่ได้ของรางวัล" ? "000" : prize.toString().padStart(3, "0");
+  const numbers = prize === "ไม่ได้ของรางวัล" ? "0000" : prize.toString().padStart(4,"0");
   slots[0].innerText = numbers[0];
   slots[1].innerText = numbers[1];
   slots[2].innerText = numbers[2];
+  slots[3].innerText = numbers[3];
 }
