@@ -1,14 +1,11 @@
-const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec"; // เปลี่ยนเป็น URL Web App ล่าสุดของคุณ
+const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
 
-let spinIntervals = new Array(4).fill(null); // interval แยกสำหรับแต่ละ slot
+let spinIntervals = new Array(4).fill(null);
 const slots = document.querySelectorAll(".slot");
 
-// ────────────────────────────────────────────────
-// ฟังก์ชันหลัก: เริ่มเกม
-// ────────────────────────────────────────────────
 async function playGame() {
   const usernameInput = document.getElementById("pg-username");
   const username = usernameInput.value.trim().toLowerCase();
@@ -49,26 +46,33 @@ async function playGame() {
       throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
-    // ────────────────────────────────────────────────
-    // กรณี error หรือเคยเล่นแล้ว → แสดงข้อความทันที ไม่หมุนต่อ
-    // ────────────────────────────────────────────────
-    if (data.error || data.alreadyPlayed) {
+    if (data.error) {
       stopAllRolling();
+      setText(data.error, 'error');
 
-      if (data.error) {
-        setText(data.error, 'error');
-      } else if (data.alreadyPlayed) {
-        setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`, 'info');
-      }
+      slots.forEach(slot => {
+        slot.textContent = "0";
+      });
 
       renderWinners(data.recentWinners || []);
       btn.disabled = false;
       return;
     }
 
-    // ────────────────────────────────────────────────
-    // กรณีเล่นได้ปกติ → หมุนต่อ แล้วหยุดทีละหลัก
-    // ────────────────────────────────────────────────
+    if (data.alreadyPlayed) {
+      stopAllRolling();
+      setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`, 'info');
+
+      let prizeStr = data.prize.toString().padStart(4, '0');
+      slots.forEach((slot, i) => {
+        slot.textContent = prizeStr[i];
+      });
+
+      renderWinners(data.recentWinners || []);
+      btn.disabled = false;
+      return;
+    }
+
     setTimeout(() => {
       const delayUntilText = stopRollingGradual(data.prize || 0);
 
@@ -95,35 +99,28 @@ async function playGame() {
   }
 }
 
-// ────────────────────────────────────────────────
-// แสดงข้อความ + เปลี่ยนสีตามประเภท
-// ────────────────────────────────────────────────
 function setText(text, type = 'normal') {
   const display = document.getElementById("pg-prize-display");
   display.textContent = text;
 
-  // รีเซ็ตสีก่อน
   display.style.color = "#fff";
   display.style.fontWeight = "normal";
   display.style.textShadow = "1px 1px 3px #000";
 
   if (type === 'error') {
-    display.style.color = "#ff4d4d";      // แดงสด
+    display.style.color = "#ff4d4d";
     display.style.fontWeight = "bold";
     display.style.textShadow = "1px 1px 5px rgba(255, 77, 77, 0.7)";
   } else if (type === 'success') {
-    display.style.color = "#00ff99";      // เขียวสด
+    display.style.color = "#00ff99";
     display.style.fontWeight = "bold";
     display.style.textShadow = "1px 1px 5px rgba(0, 255, 153, 0.7)";
   } else if (type === 'info') {
-    display.style.color = "#ffd700";      // เหลืองทอง (เคยเล่นแล้ว)
+    display.style.color = "#ffd700";
     display.style.fontWeight = "bold";
   }
 }
 
-// ────────────────────────────────────────────────
-// ฟังก์ชันอื่น ๆ (คงเดิม)
-// ────────────────────────────────────────────────
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
@@ -177,7 +174,7 @@ function stopRollingGradual(prize) {
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
-  const stopOrder = [3, 2, 1, 0]; // หน่วย → สิบ → ร้อย → พัน
+  const stopOrder = [3, 2, 1, 0];
   let currentDelay = 0;
 
   stopOrder.forEach((index, step) => {
