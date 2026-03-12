@@ -1,104 +1,118 @@
-body{
-  margin:0;
-  font-family:system-ui;
-  background:linear-gradient(135deg,#ff7a18,#ffb347);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  color:white;
+/* Body & Container */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff7f50, #ffb347);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-#prize-game-container{
-  width:95%;
-  max-width:420px;
-  padding:25px;
-  border-radius:20px;
-  background:rgba(0,0,0,0.35);
-  backdrop-filter:blur(15px);
-  text-align:center;
+#prize-game-container {
+  background-color: rgba(0,0,0,0.7);
+  padding: 25px 20px;
+  border-radius: 20px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-#pg-username{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:12px;
-  font-size:16px;
-  text-align:center;
+/* Heading */
+h2 {
+  font-size: 2em;
+  margin-bottom: 5px;
+  text-shadow: 1px 1px 5px #000;
 }
 
-#pg-start-btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:10px;
-  background:#ff5722;
-  color:white;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
+#prize-game-container p {
+  margin-bottom: 15px;
+  font-size: 1em;
 }
 
-#slot-machine{
-  display:flex;
-  justify-content:center;
-  margin:25px 0;
+/* Input & Button */
+#pg-username {
+  width: 80%;
+  padding: 12px;
+  font-size: 1em;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
-.slot{
-  width:65px;
-  height:90px;
-  margin:6px;
-  background:white;
-  color:#ff5722;
-  border-radius:15px;
-  font-size:36px;
-  font-weight:bold;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 6px 20px rgba(0,0,0,0.3);
+#pg-start-btn {
+  padding: 12px 25px;
+  font-size: 1em;
+  border: none;
+  border-radius: 10px;
+  background-color: #ffcc33;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-#pg-prize-display{
-  min-height:70px;
-  white-space:pre-line;
-  font-size:16px;
+#pg-start-btn:hover {
+  background-color: #ffd700;
+  transform: scale(1.05);
 }
 
-#recent-winners{
-  margin-top:20px;
-  text-align:left;
-  font-size:14px;
+/* Slot Machine */
+#slot-machine {
+  display: flex;
+  justify-content: center;
+  margin: 25px 0;
 }
 
-#winner-list{
-  list-style:none;
-  padding:0;
+.slot {
+  width: 60px;
+  height: 90px;
+  margin: 0 5px;
+  font-size: 2.5em;
+  font-weight: bold;
+  background-color: #fff;
+  color: #ff7f50;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.2);
 }
 
-#winner-list li{
-  padding:6px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
+/* Prize Display */
+#pg-prize-display {
+  margin-top: 20px;
+  font-size: 1.2em;
+  min-height: 50px;
+  line-height: 1.4em;
 }
 
-.line-button{
-  display:block;
-  margin-top:15px;
-  padding:14px;
-  background:#00c300;
-  color:white;
-  border-radius:10px;
-  text-decoration:none;
-  font-weight:bold;
+/* Winner Feed */
+#recent-winners {
+  margin-top: 25px;
+  text-align: left;
 }
 
-#confetti{
-  position:fixed;
-  top:0;
-  left:0;
-  pointer-events:none;
-  z-index:9999;
+#recent-winners h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+#winner-list {
+  list-style: none;
+  padding: 0;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 0.9em;
+}
+
+/* Confetti Canvas */
+#confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
 }
