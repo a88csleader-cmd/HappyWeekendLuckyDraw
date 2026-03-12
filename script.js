@@ -16,7 +16,6 @@ async function playGame() {
   const btn = document.getElementById("pg-start-btn");
   btn.disabled = true;
 
-  // ซ่อนข้อความเก่า + เริ่มหมุน
   setText("กำลังตรวจสอบและหมุน...");
   removeLineButton();
   startRolling();
@@ -24,28 +23,25 @@ async function playGame() {
   try {
     const response = await fetch(API, {
       method: 'POST',
-      mode: 'cors',                    // ลอง cors ก่อน (ถ้าไม่ได้ค่อยเปลี่ยนเป็น no-cors)
+      mode: 'cors',
+      cache: 'no-cache',
       redirect: 'follow',
       headers: {
-        'Content-Type': 'text/plain;charset=UTF-8'  // สำคัญ! ทำให้ข้าม preflight
+        'Content-Type': 'text/plain;charset=UTF-8'
       },
-      body: JSON.stringify({ username: username })  // ส่งเป็น string JSON
+      body: JSON.stringify({ username: username })
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    const text = await response.text();
 
-    const text = await response.text();       // ได้ text กลับมา
     let data;
     try {
-      data = JSON.parse(text);                // parse เป็น object
-    } catch (parseErr) {
-      console.error("JSON parse error:", text);
-      throw new Error("ตอบกลับจากเซิร์ฟเวอร์ไม่ใช่ JSON ที่ถูกต้อง");
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("ไม่สามารถ parse JSON ได้:", text);
+      throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
-    // หยุดหมุนหลัง 2 วินาที (ให้ดูสนุก)
     setTimeout(() => {
       stopRolling();
 
@@ -53,25 +49,21 @@ async function playGame() {
         setText(data.error);
       } else if (data.alreadyPlayed) {
         setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`);
+      } else if (data.prize > 0) {
+        setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
+        launchConfetti();
+        addLineButton();
       } else {
-        if (data.prize > 0) {
-          setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
-          launchConfetti();
-          addLineButton();
-        } else {
-          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
-        }
+        setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
       }
 
-      // แสดงรายชื่อผู้โชคดีล่าสุด
       renderWinners(data.recentWinners || []);
-
     }, 2000);
 
   } catch (err) {
     stopRolling();
-    setText("เกิดข้อผิดพลาด (อาจเป็นปัญหาเครือข่ายหรือ CORS) ลองใหม่นะคะ");
-    console.error("Fetch error:", err);
+    console.error("Error:", err);
+    setText("ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบ GAS deployment หรือลองใหม่");
   } finally {
     btn.disabled = false;
   }
