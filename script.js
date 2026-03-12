@@ -1,9 +1,10 @@
-const API = "https://script.google.com/macros/s/AKfycby5qx6khSAiIHk7A3_ZiLzufV4A_3mn6DJFD4TESQEcTciqqpbAd_-0ZhAFU-FizlOFKA/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณ
+const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec
+"; // เปลี่ยนเป็น URL Web App ล่าสุดของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
 
-let spinIntervals = []; // array สำหรับ interval แยกของแต่ละ slot
+let spinIntervals = new Array(4).fill(null); // interval แยกสำหรับแต่ละ slot
 const slots = document.querySelectorAll(".slot");
 
 // ────────────────────────────────────────────────
@@ -49,24 +50,36 @@ async function playGame() {
       throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
-    // เริ่มหยุด gradual หลังหมุน random 2 วินาที
+    // ────────────────────────────────────────────────
+    // กรณี error หรือเคยเล่นแล้ว → แสดงข้อความทันที ไม่หมุนต่อ
+    // ────────────────────────────────────────────────
+    if (data.error || data.alreadyPlayed) {
+      stopAllRolling();
+
+      if (data.error) {
+        setText(data.error, 'error');
+      } else if (data.alreadyPlayed) {
+        setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`, 'info');
+      }
+
+      renderWinners(data.recentWinners || []);
+      btn.disabled = false;
+      return;
+    }
+
+    // ────────────────────────────────────────────────
+    // กรณีเล่นได้ปกติ → หมุนต่อ แล้วหยุดทีละหลัก
+    // ────────────────────────────────────────────────
     setTimeout(() => {
       const delayUntilText = stopRollingGradual(data.prize || 0);
 
-      // แสดงข้อความแจ้งผลหลังสล็อตหยุดครบ
       setTimeout(() => {
-        if (data.error) {
-          setText(data.error);
-        } else if (data.alreadyPlayed) {
-          setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`);
+        if (data.prize > 0) {
+          setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`, 'success');
+          launchConfetti();
+          addLineButton();
         } else {
-          if (data.prize > 0) {
-            setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
-            launchConfetti();
-            addLineButton();
-          } else {
-            setText("เสียใจด้วย คุณไม่ได้รางวัล ลองใหม่ครั้งหน้า!");
-          }
+          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!", 'error');
         }
 
         renderWinners(data.recentWinners || []);
@@ -76,7 +89,7 @@ async function playGame() {
 
   } catch (err) {
     stopAllRolling();
-    setText("เกิดข้อผิดพลาด ลองใหม่หรือเช็คการเชื่อมต่อ");
+    setText("เกิดข้อผิดพลาด ลองใหม่หรือเช็คการเชื่อมต่อ", 'error');
     console.error("Fetch error:", err);
   } finally {
     btn.disabled = false;
@@ -84,12 +97,34 @@ async function playGame() {
 }
 
 // ────────────────────────────────────────────────
-// ฟังก์ชันช่วยเหลือ
+// แสดงข้อความ + เปลี่ยนสีตามประเภท
 // ────────────────────────────────────────────────
-function setText(text) {
-  document.getElementById("pg-prize-display").textContent = text;
+function setText(text, type = 'normal') {
+  const display = document.getElementById("pg-prize-display");
+  display.textContent = text;
+
+  // รีเซ็ตสีก่อน
+  display.style.color = "#fff";
+  display.style.fontWeight = "normal";
+  display.style.textShadow = "1px 1px 3px #000";
+
+  if (type === 'error') {
+    display.style.color = "#ff4d4d";      // แดงสด
+    display.style.fontWeight = "bold";
+    display.style.textShadow = "1px 1px 5px rgba(255, 77, 77, 0.7)";
+  } else if (type === 'success') {
+    display.style.color = "#00ff99";      // เขียวสด
+    display.style.fontWeight = "bold";
+    display.style.textShadow = "1px 1px 5px rgba(0, 255, 153, 0.7)";
+  } else if (type === 'info') {
+    display.style.color = "#ffd700";      // เหลืองทอง (เคยเล่นแล้ว)
+    display.style.fontWeight = "bold";
+  }
 }
 
+// ────────────────────────────────────────────────
+// ฟังก์ชันอื่น ๆ (คงเดิม)
+// ────────────────────────────────────────────────
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
@@ -121,15 +156,15 @@ function renderWinners(winners) {
   });
 }
 
-// หยุด interval ทุกช่อง (ใช้ตอน error หรือ reset)
 function stopAllRolling() {
-  spinIntervals.forEach(interval => {
-    if (interval) clearInterval(interval);
+  spinIntervals.forEach((interval, i) => {
+    if (interval) {
+      clearInterval(interval);
+      spinIntervals[i] = null;
+    }
   });
-  spinIntervals = [];
 }
 
-// เริ่มหมุน random แยก interval สำหรับแต่ละช่อง
 function startRolling() {
   stopAllRolling();
   slots.forEach((slot, index) => {
@@ -139,55 +174,44 @@ function startRolling() {
   });
 }
 
-// หยุดทีละหลัก จากขวาไปซ้าย (หน่วย → สิบ → ร้อย → พัน)
-// หลักอื่นยังหมุนต่อ (เพราะ interval แยก)
 function stopRollingGradual(prize) {
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
-  // ลำดับหยุด: 3=หน่วย, 2=สิบ, 1=ร้อย, 0=พัน
-  const stopOrder = [3, 2, 1, 0];
-
+  const stopOrder = [3, 2, 1, 0]; // หน่วย → สิบ → ร้อย → พัน
   let currentDelay = 0;
 
   stopOrder.forEach((index, step) => {
-    const stopDelay = currentDelay + (step === 0 ? 0 : 1200); // หลักถัดไปรอ 1.2 วินาทีหลังหลักก่อนหน้าเริ่มหยุด
+    const stopDelay = currentDelay + (step * 1200);
 
     setTimeout(() => {
-      // หยุด interval หมุนปกติของหลักนี้
       if (spinIntervals[index]) {
         clearInterval(spinIntervals[index]);
         spinIntervals[index] = null;
       }
 
-      // เอฟเฟกต์หยุด: สั่น + ขยาย
-      slots[index].style.transition = "transform 0.25s";
-      slots[index].style.transform = "scale(1.25)";
+      slots[index].style.transition = "transform 0.3s";
+      slots[index].style.transform = "scale(1.3)";
 
-      // หมุนเร็วสั้น ๆ ก่อนหยุดจริง
       let quickSpinCount = 0;
       const quickSpin = setInterval(() => {
         slots[index].textContent = Math.floor(Math.random() * 10);
         quickSpinCount++;
-        if (quickSpinCount >= 8) {  // หมุน 8 ครั้ง ≈ 0.4 วินาที
+        if (quickSpinCount >= 7) {
           clearInterval(quickSpin);
-          // หยุดแล้ว set ค่าจริง + หดกลับ
           slots[index].textContent = prizeStr[index];
           slots[index].style.transform = "scale(1)";
         }
-      }, 50);
+      }, 60);
 
     }, stopDelay);
 
-    // อัปเดต delay สำหรับหลักถัดไป (รอให้หลักนี้หยุด + เห็นชัด)
     currentDelay = stopDelay + 1400;
   });
 
-  // เวลาที่สล็อตหยุดครบ + เห็นชัดก่อนแสดงข้อความ
-  return currentDelay + 800;
+  return currentDelay + 1000;
 }
 
-// Confetti animation
 function launchConfetti() {
   const canvas = document.getElementById("confetti");
   const ctx = canvas.getContext("2d");
