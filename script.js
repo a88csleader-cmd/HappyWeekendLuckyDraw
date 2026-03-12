@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbxd-17g-kYv4yO_rFQ22J9-QB71GV8bZv0o-I3dWMovnBJLUFqQmpAP0NHOspXoi5zxxw/exec";
+const API = "https://script.google.com/macros/s/AKfycbwxU2IzDxJxzIwJ6o9Pp0-qqE1ULH1beKrQuIqhvgyjThSLe954qCvQdbqAkBI29avZUQ/exec";
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 let spinInterval;
