@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbyTJnMon6NkV9QcovEs1uqHOZbow0fHMr1DaGULbDJ_Nwz9g_ndjbckaxyrRMa7BUb4pw/exec"; // เปลี่ยนเป็น URL ของคุณ
+const API = "https://script.google.com/macros/s/AKfycbzyqCwcg4hUh2_nnWbKXxsFMuaH85FYunzqawSg5-Sad-yUcF-XyS1IkOrhnWBxCu9ihA/exec"; // เปลี่ยนเป็น URL ของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
@@ -13,12 +13,9 @@ async function playGame() {
   const btn = document.getElementById("pg-start-btn");
   btn.disabled = true;
 
-  // --- ซ่อนข้อความรางวัลเก่าก่อนหมุน ---
   const display = document.getElementById("pg-prize-display");
   display.textContent = "กำลังหมุน...";
   removeLineButton();
-
-  // --- เริ่มหมุน slot ทันทีแบบ random ---
   startRolling();
 
   try {
@@ -32,19 +29,16 @@ async function playGame() {
       return;
     }
 
-    // แสดงรายชื่อผู้โชคดีจาก Google Sheet + fake winner
     const winnersFeed = data.map(winner => `${maskUser(winner.username)} ได้ ${winner.prize} บาท`);
-    console.log("ผู้โชคดีล่าสุด:", winnersFeed);
+    document.getElementById("winner-list").innerHTML = winnersFeed.join('<br>'); // Render รายชื่อผู้โชคดีลงใน #winner-list
 
-    // ...ทำการหมุนวงล้อหรือแสดงรางวัลต่อไป
     if (data.played) {
       setText(`คุณเคยเล่นแล้ว ได้รับ ${data.prize}`);
     } else {
       setText("ยินดีด้วย! คุณได้รับรางวัล 50 บาท"); // ตัวอย่างการแสดงรางวัล
     }
 
-    addLineButton(); // เพิ่มปุ่มให้ติดต่อผ่าน LINE
-
+    addLineButton();
     btn.disabled = false;
 
   } catch (e) {
@@ -53,14 +47,12 @@ async function playGame() {
   }
 }
 
-// ฟังก์ชันแสดงข้อความ
 function setText(text) {
   const display = document.getElementById("pg-prize-display");
   display.textContent = text;
   removeLineButton();
 }
 
-// ฟังก์ชันแสดงรางวัล
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
@@ -72,19 +64,16 @@ function addLineButton() {
   container.appendChild(btn);
 }
 
-// ฟังก์ชันลบปุ่ม Line ถ้ามี
 function removeLineButton() {
   const oldBtn = document.getElementById("line-btn");
   if (oldBtn) oldBtn.remove();
 }
 
-// ฟังก์ชันมาสก์ชื่อผู้ใช้ (แสดงแค่ 2 ตัวแรกและ 2 ตัวท้าย)
 function maskUser(user) {
   if (user.length <= 4) return user;
   return user.slice(0, 2) + "***" + user.slice(-2);
 }
 
-// --- ฟังก์ชันหมุนวงล้อแบบ random ---
 function startRolling() {
   const slots = document.querySelectorAll(".slot");
   stopRolling();
@@ -95,10 +84,45 @@ function startRolling() {
   }, 80);
 }
 
-// --- หยุดหมุน ---
 function stopRolling() {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
+}
+
+function confettiExplosion() {
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let particles = [];
+  for (let i = 0; i < 300; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 10,
+      vy: (Math.random() - 0.5) * 10,
+      size: 5 + Math.random() * 5,
+      life: 100
+    });
+  }
+
+  const animation = setInterval(() => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.1;
+      p.life--;
+      ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    particles = particles.filter(p => p.life > 0);
+    if (particles.length === 0) {
+      clearInterval(animation);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }, 20);
 }
