@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbz15ab74pcyYTELi5iSE9C6rP4EDA6YRVOnLRI5kelHBW4eq7LUzJhJj-LzuW7zpN-r-Q/exec"; // เปลี่ยนเป็น URL ของคุณ
+const API = "https://script.google.com/macros/s/AKfycbwtehQLf--JNfr4plS0TIsosCaeCDqHZNB67xbNuMKpttPXkAD19NmKCbMbhqLaD69v/exec"; // เปลี่ยนเป็น URL ของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
@@ -22,7 +22,7 @@ async function playGame() {
   startRolling();
 
   try {
-    const res = await fetch(`${API}?recent=1`);
+    const res = await fetch(`${API}?username=${username}&token=${Math.random().toString(36).substring(2)}`);
     const data = await res.json();
 
     if (!data) {
@@ -37,7 +37,11 @@ async function playGame() {
     console.log("ผู้โชคดีล่าสุด:", winnersFeed);
 
     // ...ทำการหมุนวงล้อหรือแสดงรางวัลต่อไป
-    setText("ยินดีด้วย! คุณได้รับรางวัล 50 บาท"); // ตัวอย่างการแสดงรางวัล
+    if (data.played) {
+      setText(`คุณเคยเล่นแล้ว ได้รับ ${data.prize}`);
+    } else {
+      setText("ยินดีด้วย! คุณได้รับรางวัล 50 บาท"); // ตัวอย่างการแสดงรางวัล
+    }
 
     addLineButton(); // เพิ่มปุ่มให้ติดต่อผ่าน LINE
 
