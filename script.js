@@ -1,5 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec
-"; // เปลี่ยนเป็น URL Web App ล่าสุดของคุณ
+const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec"; // เปลี่ยนเป็น URL Web App ล่าสุดของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
