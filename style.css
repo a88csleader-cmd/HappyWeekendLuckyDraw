@@ -116,7 +116,7 @@ h2 {
   padding: 10px;
   background: #fbc531; /* สีเหลืองสด */
   color: #222;          /* ตัวอักษรสีเข้มตัดกับพื้น */
-  text-decoration: underline;
+  text-decoration: none;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
@@ -136,4 +136,6 @@ h2 {
   left: 0;
   pointer-events: none;
   z-index: 9999;
+  width: 100%;
+  height: 100%;
 }
