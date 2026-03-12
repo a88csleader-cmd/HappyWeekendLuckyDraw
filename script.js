@@ -1,9 +1,10 @@
-const API = "https://script.google.com/macros/s/AKfycbzJ5USHTekz0TRwKTMq8IE4G5-vAiTSp5c0tyZAZxMlKCnqDkp2FYutl-R5FVpO_zh1Ag/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณหลัง redeploy
+const API = "https://script.google.com/macros/s/AKfycbzaeLs9JvzY68djIN6VgBKismLyAkfvFB9SKvnLPl8fyNUx024sLNSHhLhj-Bx-Up0Nzw/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
 
-let spinInterval; // ตัวแปรเก็บ interval การหมุน
+let spinInterval;
+let slots = document.querySelectorAll(".slot");
 
 async function playGame() {
   const usernameInput = document.getElementById("pg-username");
@@ -16,7 +17,7 @@ async function playGame() {
   const btn = document.getElementById("pg-start-btn");
   btn.disabled = true;
 
-  setText("กำลังตรวจสอบและหมุน...");
+  setText("กำลังตรวจสอบสิทธิ์และหมุน...");
   removeLineButton();
   startRolling();
 
@@ -32,29 +33,35 @@ async function playGame() {
       body: JSON.stringify({ username: username })
     });
 
-    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
+    const text = await response.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch (e) {
-      console.error("ไม่สามารถ parse JSON ได้:", text);
+      console.error("JSON parse error:", text);
       throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
+    // หยุดหมุนแบบ gradual แล้ว set เลขตรง prize (หลัง 2 วินาที)
     setTimeout(() => {
-      stopRolling();
+      stopRollingGradual(data.prize);
 
       if (data.error) {
         setText(data.error);
       } else if (data.alreadyPlayed) {
         setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`);
-      } else if (data.prize > 0) {
-        setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
-        launchConfetti();
-        addLineButton();
       } else {
-        setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
+        if (data.prize > 0) {
+          setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
+          launchConfetti();
+          addLineButton();
+        } else {
+          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
+        }
       }
 
       renderWinners(data.recentWinners || []);
@@ -62,19 +69,19 @@ async function playGame() {
 
   } catch (err) {
     stopRolling();
-    console.error("Error:", err);
-    setText("ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบ GAS deployment หรือลองใหม่");
+    setText("เกิดข้อผิดพลาด ลองใหม่หรือเช็คการเชื่อมต่อ");
+    console.error("Fetch error:", err);
   } finally {
     btn.disabled = false;
   }
 }
 
-// แสดงข้อความใน #pg-prize-display
+// แสดงข้อความ
 function setText(text) {
   document.getElementById("pg-prize-display").textContent = text;
 }
 
-// เพิ่มปุ่มแจ้งรับรางวัล LINE
+// เพิ่มปุ่ม LINE
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
@@ -86,19 +93,19 @@ function addLineButton() {
   container.appendChild(btn);
 }
 
-// ลบปุ่ม LINE ถ้ามี
+// ลบปุ่ม LINE
 function removeLineButton() {
   const oldBtn = document.getElementById("line-btn");
   if (oldBtn) oldBtn.remove();
 }
 
-// มาสก์ชื่อผู้ใช้ (privacy)
+// มาสก์ username
 function maskUser(user) {
   if (user.length <= 4) return user;
   return user.slice(0, 2) + "***" + user.slice(-2);
 }
 
-// แสดงรายชื่อผู้ชนะใน #winner-list
+// แสดงผู้ชนะ
 function renderWinners(winners) {
   const list = document.getElementById("winner-list");
   list.innerHTML = "";
@@ -109,9 +116,8 @@ function renderWinners(winners) {
   });
 }
 
-// เริ่มหมุน slot machine
+// เริ่มหมุน random
 function startRolling() {
-  const slots = document.querySelectorAll(".slot");
   stopRolling();
   spinInterval = setInterval(() => {
     slots.forEach(slot => {
@@ -120,15 +126,26 @@ function startRolling() {
   }, 80);
 }
 
-// หยุดหมุน
-function stopRolling() {
+// หยุดหมุนแบบ gradual แล้ว set เลขตรง prize
+function stopRollingGradual(prize) {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
+
+  // แปลง prize เป็น string 4 หลัก pad ด้วย 0 (เช่น 50 → "0050")
+  let prizeStr = prize.toString().padStart(4, '0');
+  if (prize === 0) prizeStr = "0000"; // สำหรับ 0
+
+  // หยุดทีละช่อง (delay เพิ่มขึ้น)
+  slots.forEach((slot, index) => {
+    setTimeout(() => {
+      slot.textContent = prizeStr[index];
+    }, index * 300); // ช่อง 1 หยุดก่อน, ช่อง 4 หยุดทีหลัง
+  });
 }
 
-// Confetti animation ง่าย ๆ
+// Confetti (เดิม)
 function launchConfetti() {
   const canvas = document.getElementById("confetti");
   const ctx = canvas.getContext("2d");
