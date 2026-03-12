@@ -1,5 +1,4 @@
 body{
-
 margin:0;
 font-family:system-ui;
 background:linear-gradient(135deg,#ff7a18,#ffb347);
@@ -8,11 +7,9 @@ align-items:center;
 justify-content:center;
 height:100vh;
 color:white;
-
 }
 
 #prize-game-container{
-
 width:95%;
 max-width:420px;
 padding:25px;
@@ -20,11 +17,9 @@ border-radius:20px;
 background:rgba(0,0,0,0.35);
 backdrop-filter:blur(15px);
 text-align:center;
-
 }
 
 #pg-username{
-
 width:100%;
 padding:14px;
 border-radius:10px;
@@ -32,11 +27,9 @@ border:none;
 margin-bottom:12px;
 font-size:16px;
 text-align:center;
-
 }
 
 #pg-start-btn{
-
 width:100%;
 padding:14px;
 border:none;
@@ -46,19 +39,15 @@ color:white;
 font-size:18px;
 font-weight:bold;
 cursor:pointer;
-
 }
 
 #slot-machine{
-
 display:flex;
 justify-content:center;
 margin:25px 0;
-
 }
 
 .slot{
-
 width:75px;
 height:95px;
 margin:6px;
@@ -71,19 +60,31 @@ display:flex;
 align-items:center;
 justify-content:center;
 box-shadow:0 6px 20px rgba(0,0,0,0.3);
-
 }
 
 #pg-prize-display{
-
 min-height:70px;
 white-space:pre-line;
 font-size:16px;
+}
 
+#recent-winners{
+margin-top:20px;
+text-align:left;
+font-size:14px;
+}
+
+#winner-list{
+list-style:none;
+padding:0;
+}
+
+#winner-list li{
+padding:6px 0;
+border-bottom:1px solid rgba(255,255,255,0.2);
 }
 
 .line-button{
-
 display:block;
 margin-top:15px;
 padding:14px;
@@ -92,37 +93,12 @@ color:white;
 border-radius:10px;
 text-decoration:none;
 font-weight:bold;
-
-}
-
-#recent-winners{
-
-margin-top:20px;
-text-align:left;
-font-size:14px;
-
-}
-
-#winner-list{
-
-list-style:none;
-padding:0;
-
-}
-
-#winner-list li{
-
-padding:6px 0;
-border-bottom:1px solid rgba(255,255,255,0.2);
-
 }
 
 #confetti{
-
 position:fixed;
 top:0;
 left:0;
 pointer-events:none;
 z-index:9999;
-
 }
