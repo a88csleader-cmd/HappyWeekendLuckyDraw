@@ -50,25 +50,29 @@ async function playGame() {
     }
 
     // หยุดหมุน gradual แล้วแสดงผล
-    setTimeout(() => {
-      stopRollingGradual(data.prize || 0);
+setTimeout(() => {
+  const delayUntilText = stopRollingGradual(data.prize || 0);
 
-      if (data.error) {
-        setText(data.error);
-      } else if (data.alreadyPlayed) {
-        setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`);
+  // แสดงข้อความแจ้งผล **หลังจาก** สล็อตหยุดครบแล้ว
+  setTimeout(() => {
+    if (data.error) {
+      setText(data.error);
+    } else if (data.alreadyPlayed) {
+      setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`);
+    } else {
+      if (data.prize > 0) {
+        setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
+        launchConfetti();
+        addLineButton();
       } else {
-        if (data.prize > 0) {
-          setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`);
-          launchConfetti();
-          addLineButton();
-        } else {
-          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
-        }
+        setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
       }
+    }
 
-      renderWinners(data.recentWinners || []);
-    }, 2000);
+    renderWinners(data.recentWinners || []);
+  }, delayUntilText); // รอให้สล็อตหยุดครบ + เห็นเลขชัด ๆ ก่อนแสดงข้อความ
+
+}, 2000);  // ยังคงหมุน random ไป 2 วินาทีก่อน แล้วค่อยเริ่มหยุด gradual
 
   } catch (err) {
     stopRolling();
@@ -136,31 +140,35 @@ function startRolling() {
   }, 80);
 }
 
-// หยุด gradual จากซ้ายไปขวา (หลักพัน → ร้อย → สิบ → หน่วย)
+// หยุด gradual จากขวาไปซ้าย (หน่วย → สิบ → ร้อย → พัน)
 function stopRollingGradual(prize) {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
 
-  // แปลง prize เป็น string 4 หลัก (pad 0 ด้านหน้า)
+  // แปลง prize เป็น string 4 หลัก pad ด้วย 0 ด้านหน้า
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
-  // หยุดทีละหลัก ด้วย delay เพิ่มขึ้นเรื่อย ๆ
-  // index 0 = หลักพัน, index 1 = ร้อย, index 2 = สิบ, index 3 = หน่วย
-  slots.forEach((slot, index) => {
-    setTimeout(() => {
-      slot.textContent = prizeStr[index];
+  // เรียงลำดับการหยุด: index 3 (หน่วย) หยุดก่อนสุด → index 0 (พัน) หยุดทีหลังสุด
+  const stopOrder = [3, 2, 1, 0]; // หน่วย → สิบ → ร้อย → พัน
 
-      // เพิ่มเอฟเฟกต์หยุดสั่นเล็กน้อย (optional แต่ดูตื่นเต้นขึ้น)
-      slot.style.transition = "transform 0.15s";
-      slot.style.transform = "scale(1.15)";
+  stopOrder.forEach((index, step) => {
+    setTimeout(() => {
+      slots[index].textContent = prizeStr[index];
+
+      // เพิ่มเอฟเฟกต์หยุดเล็กน้อย (สั่น/ขยายแล้วหด)
+      slots[index].style.transition = "transform 0.2s";
+      slots[index].style.transform = "scale(1.2)";
       setTimeout(() => {
-        slot.style.transform = "scale(1)";
-      }, 150);
-    }, 400 + index * 600);   // หลักพันหยุดก่อน 400ms, แล้ว +600ms ต่อหลักถัดไป
+        slots[index].style.transform = "scale(1)";
+      }, 200);
+    }, 300 + step * 700); // เริ่มหยุดหน่วยที่ 300ms แล้ว +700ms ต่อหลักถัดไป
   });
+
+  // เวลาที่สล็อตหยุดครบทั้ง 4 หลัก = 300 + 3*700 = 2400ms (2.4 วินาที)
+  return 300 + 3 * 700 + 600; // +600ms เผื่อให้เห็นเลขชัด ๆ ก่อนแสดงข้อความ
 }
 
 // Confetti animation
