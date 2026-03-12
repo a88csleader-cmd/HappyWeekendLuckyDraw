@@ -1,11 +1,14 @@
-const API = "https://script.google.com/macros/s/AKfycbzaeLs9JvzY68djIN6VgBKismLyAkfvFB9SKvnLPl8fyNUx024sLNSHhLhj-Bx-Up0Nzw/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณ
+const API = "https://script.google.com/macros/s/AKfycbzaeLs9JvzY68djIN6VgBKismLyAkfvFB9SKvnLPl8fyNUx024sLNSHhLhj-Bx-Up0Nzw/exec"; // เปลี่ยนเป็น URL ล่าสุดหลัง redeploy
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
 
 let spinInterval;
-let slots = document.querySelectorAll(".slot");
+const slots = document.querySelectorAll(".slot");
 
+// ────────────────────────────────────────────────
+// ฟังก์ชันหลัก: เริ่มเกม
+// ────────────────────────────────────────────────
 async function playGame() {
   const usernameInput = document.getElementById("pg-username");
   const username = usernameInput.value.trim().toLowerCase();
@@ -46,9 +49,9 @@ async function playGame() {
       throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
-    // หยุดหมุนแบบ gradual แล้ว set เลขตรง prize (หลัง 2 วินาที)
+    // หยุดหมุน gradual แล้วแสดงผล
     setTimeout(() => {
-      stopRollingGradual(data.prize);
+      stopRollingGradual(data.prize || 0);
 
       if (data.error) {
         setText(data.error);
@@ -76,12 +79,14 @@ async function playGame() {
   }
 }
 
-// แสดงข้อความ
+// ────────────────────────────────────────────────
+// ฟังก์ชันช่วยเหลือ (เรียงตามที่ถูกเรียกบ่อย)
+// ────────────────────────────────────────────────
+
 function setText(text) {
   document.getElementById("pg-prize-display").textContent = text;
 }
 
-// เพิ่มปุ่ม LINE
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
@@ -93,19 +98,16 @@ function addLineButton() {
   container.appendChild(btn);
 }
 
-// ลบปุ่ม LINE
 function removeLineButton() {
   const oldBtn = document.getElementById("line-btn");
   if (oldBtn) oldBtn.remove();
 }
 
-// มาสก์ username
 function maskUser(user) {
   if (user.length <= 4) return user;
   return user.slice(0, 2) + "***" + user.slice(-2);
 }
 
-// แสดงผู้ชนะ
 function renderWinners(winners) {
   const list = document.getElementById("winner-list");
   list.innerHTML = "";
@@ -116,9 +118,17 @@ function renderWinners(winners) {
   });
 }
 
-// เริ่มหมุน random
+// หยุดการหมุนทันที (ใช้ตอน error)
+function stopRolling() {
+  if (spinInterval) {
+    clearInterval(spinInterval);
+    spinInterval = null;
+  }
+}
+
+// เริ่มหมุน random (เรียก stopRolling ก่อนเริ่มใหม่)
 function startRolling() {
-  stopRolling();
+  stopRolling();  // เคลียร์ interval เก่าก่อน
   spinInterval = setInterval(() => {
     slots.forEach(slot => {
       slot.textContent = Math.floor(Math.random() * 10);
@@ -126,26 +136,25 @@ function startRolling() {
   }, 80);
 }
 
-// หยุดหมุนแบบ gradual แล้ว set เลขตรง prize
+// หยุด gradual แล้ว set ค่า prize เป็น 4 หลัก
 function stopRollingGradual(prize) {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
 
-  // แปลง prize เป็น string 4 หลัก pad ด้วย 0 (เช่น 50 → "0050")
   let prizeStr = prize.toString().padStart(4, '0');
-  if (prize === 0) prizeStr = "0000"; // สำหรับ 0
+  if (prize === 0) prizeStr = "0000";
 
-  // หยุดทีละช่อง (delay เพิ่มขึ้น)
+  // หยุดทีละช่อง (ช้า ๆ จากซ้ายไปขวา)
   slots.forEach((slot, index) => {
     setTimeout(() => {
       slot.textContent = prizeStr[index];
-    }, index * 300); // ช่อง 1 หยุดก่อน, ช่อง 4 หยุดทีหลัง
+    }, index * 400); // 400ms ต่อช่อง ให้ดู dramatic
   });
 }
 
-// Confetti (เดิม)
+// Confetti animation
 function launchConfetti() {
   const canvas = document.getElementById("confetti");
   const ctx = canvas.getContext("2d");
