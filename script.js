@@ -65,7 +65,7 @@ async function playGame() {
             launchConfetti();
             addLineButton();
           } else {
-            setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
+            setText("เสียใจด้วย คุณไม่ได้รางวัล ลองใหม่ครั้งหน้า!");
           }
         }
 
