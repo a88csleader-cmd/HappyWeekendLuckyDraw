@@ -116,3 +116,24 @@ h2 {
   pointer-events: none;
   z-index: 9999;
 }
+
+#line-btn {
+  display: block;
+  margin-top: 10px;
+  padding: 10px;
+  background: #fbc531; /* สีเหลืองสด */
+  color: #222;          /* ตัวอักษรสีเข้มตัดกับพื้น */
+  text-decoration: underline;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  max-width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#line-btn:hover {
+  background-color: #ffd845;
+}
