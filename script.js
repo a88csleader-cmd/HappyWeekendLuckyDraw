@@ -13,17 +13,34 @@ async function playGame() {
   const btn = document.getElementById("pg-start-btn");
   btn.disabled = true;
 
-  // ซ่อนข้อความรางวัลเก่าและเริ่มหมุน
   setText("กำลังหมุน...");
   removeLineButton();
   startRolling();
 
   try {
-    const res = await fetch(`${API}?username=${encodeURIComponent(username)}`);
-    if (!res.ok) throw new Error("Network error");
-    const data = await res.json();
+    const response = await fetch(API, {
+      method: 'POST',  // เปลี่ยนเป็น POST เพื่อให้ GAS จัดการง่ายขึ้น
+      mode: 'cors',    // ลอง cors ก่อน ถ้าไม่ได้ค่อยเปลี่ยน no-cors
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'text/plain;charset=UTF-8'  // สำคัญมาก! ทำให้เป็น simple request
+      },
+      body: JSON.stringify({ username: username })  // ส่งเป็น text แต่จริงๆ เป็น JSON string
+    });
 
-    // หยุดหมุนหลังจาก 2 วินาทีเพื่อความสนุก
+    // ถ้าใช้ no-cors จะได้ response แบบ opaque → อ่านไม่ได้ปกติ
+    // ดังนั้น GAS ต้อง return text/plain แล้ว parse เอง
+
+    const text = await response.text();  // ได้ text มา
+    let data;
+    try {
+      data = JSON.parse(text);  // พยายาม parse เป็น JSON
+    } catch (e) {
+      console.error("Parse error:", text);
+      throw new Error("Invalid response from server");
+    }
+
+    // ... ต่อด้วย logic เดิม
     setTimeout(() => {
       stopRolling();
       if (data.error) {
@@ -39,14 +56,12 @@ async function playGame() {
           setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!");
         }
       }
-
-      // แสดงผู้โชคดีล่าสุด
       renderWinners(data.recentWinners || []);
     }, 2000);
 
   } catch (e) {
     stopRolling();
-    setText("เกิดข้อผิดพลาด กรุณาลองใหม่");
+    setText("เกิดข้อผิดพลาด (อาจเป็น CORS) ลองใหม่หรือเช็ค GAS deploy");
     console.error(e);
   } finally {
     btn.disabled = false;
