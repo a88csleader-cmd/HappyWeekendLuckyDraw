@@ -1,64 +1,51 @@
-const API = "https://script.google.com/macros/s/AKfycbwxU2IzDxJxzIwJ6o9Pp0-qqE1ULH1beKrQuIqhvgyjThSLe954qCvQdbqAkBI29avZUQ/exec";
-const LINE_LINK = "https://lin.ee/Nb2TD8R";
+const API="https://script.google.com/macros/s/AKfycbyYd_o3nHYIOapc3YkfqYOwwAOHHGY-paZe5nhpcqCuGRdo5R_aAJsTndnI7qcACD171A/exec";
+const LINE_LINK="https://lin.ee/Nb2TD8R";
 
 let spinInterval;
-let lockedUsername = null;
 
-document.getElementById("pg-start-btn").addEventListener("click", playGame);
+document.getElementById("pg-start-btn").addEventListener("click",playGame);
+
+loadRecentWinners();
 
 async function playGame(){
 
-const btn = document.getElementById("pg-start-btn");
+const btn=document.getElementById("pg-start-btn");
 if(btn.disabled) return;
 
-let username = document.getElementById("pg-username").value.trim().toLowerCase();
+let username=document.getElementById("pg-username").value.trim().toLowerCase();
 
 if(!username){
 alert("กรุณาใส่ username");
 return;
 }
 
-btn.disabled = true;
+btn.disabled=true;
 
-lockedUsername = username;
-
-document.getElementById("pg-username").disabled = true;
+document.getElementById("pg-username").disabled=true;
 
 setText("กำลังหมุน...");
 
-spinSlots();
+startRolling();
 
 try{
 
-const res = await fetch(API+"?username="+username);
+const token=Math.random().toString(36).substring(2);
 
-const data = await res.json();
+const res=await fetch(API+"?username="+username+"&token="+token);
 
-clearInterval(spinInterval);
+const data=await res.json();
+
+stopRolling();
 
 if(!data.success){
 
 setText(data.error);
-
 btn.disabled=false;
-
 return;
 
 }
 
-if(data.played){
-
-showPrizeNumber(data.prize);
-
-setText("Username "+username+" เคยเล่นแล้ว\nได้รับ "+formatPrize(data.prize));
-
-addLineButton();
-
-return;
-
-}
-
-await spinSlotsToPrize(data.prize);
+await spinToResult(data.prize);
 
 if(data.prize==="ไม่ได้ของรางวัล"){
 
@@ -66,17 +53,19 @@ setText("Username "+username+"\nเสียใจด้วย คุณไม�
 
 }else{
 
-setText("🎉 ยินดีด้วย!\nUsername "+username+"\nได้รับรางวัล "+data.prize+" บาท\n\nกรุณาแคปหน้าจอแล้วแจ้งแอดมิน");
+setText("🎉 ยินดีด้วย!\nUsername "+username+"\nได้รับ "+data.prize+" บาท");
 
-confetti();
+confettiExplosion();
 
 addLineButton();
 
 }
 
+loadRecentWinners();
+
 }catch(e){
 
-setText("ระบบขัดข้อง กรุณาลองใหม่");
+setText("เกิดข้อผิดพลาด");
 
 btn.disabled=false;
 
@@ -90,37 +79,45 @@ document.getElementById("pg-prize-display").innerText=t;
 
 }
 
-function spinSlots(){
+function startRolling(){
 
-const slots=document.querySelectorAll(".slot span");
+const slots=document.querySelectorAll(".slot");
 
 spinInterval=setInterval(()=>{
 
-slots.forEach(s=>{
+slots.forEach(slot=>{
 
-s.innerText=Math.floor(Math.random()*10);
+slot.innerText=Math.floor(Math.random()*10);
 
 });
 
-},60);
+},50);
 
 }
 
-function spinSlotsToPrize(prize){
+function stopRolling(){
+
+clearInterval(spinInterval);
+
+}
+
+async function spinToResult(prize){
 
 return new Promise(resolve=>{
 
-const slots=document.querySelectorAll(".slot span");
+const slots=document.querySelectorAll(".slot");
 
-const numbers=prize==="ไม่ได้ของรางวัล"?"000":prize.toString().padStart(3,"0");
+let target=prize==="ไม่ได้ของรางวัล"?"000":prize.toString().padStart(3,"0");
 
-let done=0;
+nearMiss(slots,target);
+
+let finished=0;
 
 slots.forEach((slot,i)=>{
 
 let count=0;
 
-const max=30+(i*15);
+let max=25+i*15;
 
 const interval=setInterval(()=>{
 
@@ -132,11 +129,15 @@ if(count>=max){
 
 clearInterval(interval);
 
-slot.innerText=numbers[i];
+slot.innerText=target[i];
 
-done++;
+finished++;
 
-if(done===3) resolve();
+if(finished===3){
+
+resolve();
+
+}
 
 }
 
@@ -148,21 +149,17 @@ if(done===3) resolve();
 
 }
 
-function showPrizeNumber(prize){
+function nearMiss(slots,target){
 
-const slots=document.querySelectorAll(".slot span");
+if(Math.random()>0.5) return;
 
-const numbers=prize==="ไม่ได้ของรางวัล"?"000":prize.toString().padStart(3,"0");
+setTimeout(()=>{
 
-slots[0].innerText=numbers[0];
-slots[1].innerText=numbers[1];
-slots[2].innerText=numbers[2];
+slots[0].innerText=target[0];
+slots[1].innerText=target[1];
+slots[2].innerText=(target[2]==9?8:parseInt(target[2])+1);
 
-}
-
-function formatPrize(prize){
-
-return prize==="ไม่ได้ของรางวัล"?"ไม่ได้รางวัล":prize+" บาท";
+},800);
 
 }
 
@@ -171,10 +168,7 @@ function addLineButton(){
 const btn=document.createElement("a");
 
 btn.href=LINE_LINK;
-
 btn.target="_blank";
-
-btn.id="line-btn";
 
 btn.innerText="แจ้งรับรางวัลทาง LINE";
 
@@ -184,70 +178,89 @@ document.getElementById("prize-game-container").appendChild(btn);
 
 }
 
-function confetti(){
+function confettiExplosion(){
 
 const canvas=document.getElementById("confetti");
-
 const ctx=canvas.getContext("2d");
 
 canvas.width=window.innerWidth;
-
 canvas.height=window.innerHeight;
 
-const pieces=[];
+let particles=[];
 
-for(let i=0;i<200;i++){
+for(let i=0;i<300;i++){
 
-pieces.push({
+particles.push({
 
-x:Math.random()*canvas.width,
-
-y:Math.random()*canvas.height,
-
-r:Math.random()*6+4,
-
-d:Math.random()*200
+x:canvas.width/2,
+y:canvas.height/2,
+vx:(Math.random()-0.5)*10,
+vy:(Math.random()-0.5)*10,
+size:5+Math.random()*5,
+life:100
 
 });
 
 }
 
-let angle=0;
-
-let tiltAngle=0;
-
 const animation=setInterval(()=>{
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-angle+=0.01;
+particles.forEach(p=>{
 
-tiltAngle+=0.1;
-
-pieces.forEach(p=>{
-
-p.y+=Math.cos(angle+p.d)+2;
-
-p.x+=Math.sin(angle);
-
-ctx.beginPath();
+p.x+=p.vx;
+p.y+=p.vy;
+p.vy+=0.1;
+p.life--;
 
 ctx.fillStyle="hsl("+Math.random()*360+",100%,50%)";
-
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-
-ctx.fill();
+ctx.fillRect(p.x,p.y,p.size,p.size);
 
 });
 
-},20);
+particles=particles.filter(p=>p.life>0);
 
-setTimeout(()=>{
+if(particles.length===0){
 
 clearInterval(animation);
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
+}
 
-},5000);
+},20);
+
+}
+
+async function loadRecentWinners(){
+
+try{
+
+const res=await fetch(API+"?recent=1");
+
+const data=await res.json();
+
+const list=document.getElementById("winner-list");
+
+list.innerHTML="";
+
+data.forEach(w=>{
+
+const li=document.createElement("li");
+
+li.innerText=maskUser(w.username)+" ได้ "+w.prize+" บาท";
+
+list.appendChild(li);
+
+});
+
+}catch(e){}
+
+}
+
+function maskUser(user){
+
+if(user.length<=4) return user;
+
+return user.slice(0,2)+"***"+user.slice(-2);
 
 }
