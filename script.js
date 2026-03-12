@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzaeLs9JvzY68djIN6VgBKismLyAkfvFB9SKvnLPl8fyNUx024sLNSHhLhj-Bx-Up0Nzw/exec"; // เปลี่ยนเป็น URL ล่าสุดหลัง redeploy
+const API = "https://script.google.com/macros/s/AKfycbwtOQMmrUPCP5KW7p8528rIEudqVj17nr8DLfvQqbYLufbtlDc2jbE7uIY0XALy64Vl6g/exec"; // เปลี่ยนเป็น URL ล่าสุดหลัง redeploy
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
@@ -136,21 +136,30 @@ function startRolling() {
   }, 80);
 }
 
-// หยุด gradual แล้ว set ค่า prize เป็น 4 หลัก
+// หยุด gradual จากซ้ายไปขวา (หลักพัน → ร้อย → สิบ → หน่วย)
 function stopRollingGradual(prize) {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
 
+  // แปลง prize เป็น string 4 หลัก (pad 0 ด้านหน้า)
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
-  // หยุดทีละช่อง (ช้า ๆ จากซ้ายไปขวา)
+  // หยุดทีละหลัก ด้วย delay เพิ่มขึ้นเรื่อย ๆ
+  // index 0 = หลักพัน, index 1 = ร้อย, index 2 = สิบ, index 3 = หน่วย
   slots.forEach((slot, index) => {
     setTimeout(() => {
       slot.textContent = prizeStr[index];
-    }, index * 400); // 400ms ต่อช่อง ให้ดู dramatic
+
+      // เพิ่มเอฟเฟกต์หยุดสั่นเล็กน้อย (optional แต่ดูตื่นเต้นขึ้น)
+      slot.style.transition = "transform 0.15s";
+      slot.style.transform = "scale(1.15)";
+      setTimeout(() => {
+        slot.style.transform = "scale(1)";
+      }, 150);
+    }, 400 + index * 600);   // หลักพันหยุดก่อน 400ms, แล้ว +600ms ต่อหลักถัดไป
   });
 }
 
