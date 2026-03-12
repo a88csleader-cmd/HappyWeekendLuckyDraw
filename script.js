@@ -3,7 +3,7 @@ const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
 
-let spinInterval;
+let spinIntervals = []; // array สำหรับ interval แยกของแต่ละ slot
 const slots = document.querySelectorAll(".slot");
 
 // ────────────────────────────────────────────────
@@ -53,7 +53,7 @@ async function playGame() {
     setTimeout(() => {
       const delayUntilText = stopRollingGradual(data.prize || 0);
 
-      // แสดงข้อความแจ้งผล **หลัง** สล็อตหยุดครบทุกหลัก
+      // แสดงข้อความแจ้งผลหลังสล็อตหยุดครบ
       setTimeout(() => {
         if (data.error) {
           setText(data.error);
@@ -75,7 +75,7 @@ async function playGame() {
     }, 2000);
 
   } catch (err) {
-    stopRolling();
+    stopAllRolling();
     setText("เกิดข้อผิดพลาด ลองใหม่หรือเช็คการเชื่อมต่อ");
     console.error("Fetch error:", err);
   } finally {
@@ -121,28 +121,27 @@ function renderWinners(winners) {
   });
 }
 
-// หยุดการหมุนทันที (ใช้ตอน error)
-function stopRolling() {
-  if (spinInterval) {
-    clearInterval(spinInterval);
-    spinInterval = null;
-  }
+// หยุด interval ทุกช่อง (ใช้ตอน error หรือ reset)
+function stopAllRolling() {
+  spinIntervals.forEach(interval => {
+    if (interval) clearInterval(interval);
+  });
+  spinIntervals = [];
 }
 
-// เริ่มหมุน random ทั้ง 4 ช่อง
+// เริ่มหมุน random แยก interval สำหรับแต่ละช่อง
 function startRolling() {
-  stopRolling();
-  spinInterval = setInterval(() => {
-    slots.forEach(slot => {
+  stopAllRolling();
+  slots.forEach((slot, index) => {
+    spinIntervals[index] = setInterval(() => {
       slot.textContent = Math.floor(Math.random() * 10);
-    });
-  }, 80);
+    }, 80);
+  });
 }
 
 // หยุดทีละหลัก จากขวาไปซ้าย (หน่วย → สิบ → ร้อย → พัน)
-// หลักอื่นยังหมุนต่อจนกว่าจะถึงคิวหยุด
+// หลักอื่นยังหมุนต่อ (เพราะ interval แยก)
 function stopRollingGradual(prize) {
-  // แปลง prize เป็น string 4 หลัก
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
@@ -155,11 +154,17 @@ function stopRollingGradual(prize) {
     const stopDelay = currentDelay + (step === 0 ? 0 : 1200); // หลักถัดไปรอ 1.2 วินาทีหลังหลักก่อนหน้าเริ่มหยุด
 
     setTimeout(() => {
-      // เอฟเฟกต์หยุดของหลักนี้
+      // หยุด interval หมุนปกติของหลักนี้
+      if (spinIntervals[index]) {
+        clearInterval(spinIntervals[index]);
+        spinIntervals[index] = null;
+      }
+
+      // เอฟเฟกต์หยุด: สั่น + ขยาย
       slots[index].style.transition = "transform 0.25s";
       slots[index].style.transform = "scale(1.25)";
 
-      // หมุนเร็วสั้น ๆ ก่อนหยุดจริง (ให้ดูตื่นเต้น)
+      // หมุนเร็วสั้น ๆ ก่อนหยุดจริง
       let quickSpinCount = 0;
       const quickSpin = setInterval(() => {
         slots[index].textContent = Math.floor(Math.random() * 10);
@@ -174,8 +179,8 @@ function stopRollingGradual(prize) {
 
     }, stopDelay);
 
-    // อัปเดต delay สำหรับหลักถัดไป
-    currentDelay = stopDelay + 1400;  // รอให้หลักนี้หยุด + เห็นชัด ≈ 1.4 วินาที
+    // อัปเดต delay สำหรับหลักถัดไป (รอให้หลักนี้หยุด + เห็นชัด)
+    currentDelay = stopDelay + 1400;
   });
 
   // เวลาที่สล็อตหยุดครบ + เห็นชัดก่อนแสดงข้อความ
