@@ -53,7 +53,7 @@ async function playGame() {
 setTimeout(() => {
   const delayUntilText = stopRollingGradual(data.prize || 0);
 
-  // แสดงข้อความแจ้งผล **หลังจาก** สล็อตหยุดครบแล้ว
+  // แสดงข้อความหลังจากสล็อตหยุดครบทุกหลักแล้ว
   setTimeout(() => {
     if (data.error) {
       setText(data.error);
@@ -70,9 +70,9 @@ setTimeout(() => {
     }
 
     renderWinners(data.recentWinners || []);
-  }, delayUntilText); // รอให้สล็อตหยุดครบ + เห็นเลขชัด ๆ ก่อนแสดงข้อความ
+  }, delayUntilText);
 
-}, 2000);  // ยังคงหมุน random ไป 2 วินาทีก่อน แล้วค่อยเริ่มหยุด gradual
+}, 2000);  // หมุน random 2 วินาทีก่อน แล้วเริ่มหยุดทีละหลัก
 
   } catch (err) {
     stopRolling();
@@ -141,34 +141,59 @@ function startRolling() {
 }
 
 // หยุด gradual จากขวาไปซ้าย (หน่วย → สิบ → ร้อย → พัน)
+// หยุดทีละหลัก จากขวาไปซ้าย (หน่วย → สิบ → ร้อย → พัน)
+// หลักที่ยังไม่ถึงคิวหยุด จะยังหมุน random ต่อไป
 function stopRollingGradual(prize) {
   if (spinInterval) {
     clearInterval(spinInterval);
     spinInterval = null;
   }
 
-  // แปลง prize เป็น string 4 หลัก pad ด้วย 0 ด้านหน้า
+  // แปลง prize เป็น string 4 หลัก pad ด้วย 0
   let prizeStr = prize.toString().padStart(4, '0');
   if (prize === 0) prizeStr = "0000";
 
-  // เรียงลำดับการหยุด: index 3 (หน่วย) หยุดก่อนสุด → index 0 (พัน) หยุดทีหลังสุด
-  const stopOrder = [3, 2, 1, 0]; // หน่วย → สิบ → ร้อย → พัน
+  // ลำดับการหยุด: 3=หน่วย, 2=สิบ, 1=ร้อย, 0=พัน
+  const stopOrder = [3, 2, 1, 0];
+
+  // เวลาเริ่มหยุดแต่ละหลัก (หน่วยเริ่มก่อน หลักอื่นตามมา)
+  let currentDelay = 0;
 
   stopOrder.forEach((index, step) => {
-    setTimeout(() => {
-      slots[index].textContent = prizeStr[index];
+    // แต่ละหลักจะหยุดหลังจากหลักก่อนหน้าเสร็จแล้ว + หน่วงเวลา
+    const stopDelay = currentDelay + 800;  // 800ms หลังจากหลักก่อนหน้าเริ่มหยุด
 
-      // เพิ่มเอฟเฟกต์หยุดเล็กน้อย (สั่น/ขยายแล้วหด)
-      slots[index].style.transition = "transform 0.2s";
-      slots[index].style.transform = "scale(1.2)";
-      setTimeout(() => {
-        slots[index].style.transform = "scale(1)";
-      }, 200);
-    }, 300 + step * 700); // เริ่มหยุดหน่วยที่ 300ms แล้ว +700ms ต่อหลักถัดไป
+    setTimeout(() => {
+      // หยุดการหมุน random ของหลักนี้ (แต่จริง ๆ เราจะ set ค่าเลย)
+      // เอฟเฟกต์หยุด: สั่น + ขยาย แล้วค่อย set ค่า
+      slots[index].style.transition = "transform 0.25s";
+      slots[index].style.transform = "scale(1.25)";
+
+      // ระหว่างสั่น ให้หมุนเลขเร็ว ๆ สั้น ๆ ก่อนหยุด (optional แต่ดูตื่นเต้น)
+      let quickSpinCount = 0;
+      const quickSpin = setInterval(() => {
+        slots[index].textContent = Math.floor(Math.random() * 10);
+        quickSpinCount++;
+        if (quickSpinCount >= 6) {  // หมุนเร็ว 6 ครั้ง ≈ 0.3 วินาที
+          clearInterval(quickSpin);
+          // หยุดแล้ว set ค่าจริง + หดกลับ
+          slots[index].textContent = prizeStr[index];
+          slots[index].style.transform = "scale(1)";
+        }
+      }, 50);
+
+    }, stopDelay);
+
+    // อัปเดตเวลาสำหรับหลักถัดไป (รอให้หลักนี้หยุดเสร็จประมาณ 800ms + เวลาสั่น)
+    currentDelay = stopDelay + 1000;  // +1 วินาทีเพื่อให้เห็นเอฟเฟกต์ชัด
   });
 
-  // เวลาที่สล็อตหยุดครบทั้ง 4 หลัก = 300 + 3*700 = 2400ms (2.4 วินาที)
-  return 300 + 3 * 700 + 600; // +600ms เผื่อให้เห็นเลขชัด ๆ ก่อนแสดงข้อความ
+  // เวลาที่สล็อตหยุดครบทั้งหมด ≈ currentDelay + เวลาหลักสุดท้าย
+  // ใช้ค่านี้เป็นจุดเริ่มแสดงข้อความแจ้งผล
+  const totalStopTime = currentDelay + 1200;
+
+  // คืนค่าเวลาที่ควรเริ่มแสดงข้อความ (หลังจากสล็อตหยุดครบ + เห็นชัด)
+  return totalStopTime;
 }
 
 // Confetti animation
