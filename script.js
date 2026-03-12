@@ -8,56 +8,57 @@ document.getElementById("pg-start-btn").addEventListener("click",playGame);
 loadRecentWinners();
 setInterval(loadRecentWinners,8000); // delay feed
 
-async function playGame(){
+async function playGame() {
+    const btn = document.getElementById("pg-start-btn");
+    if (btn.disabled) return;
 
-const btn=document.getElementById("pg-start-btn");
-if(btn.disabled) return;
+    let username = document.getElementById("pg-username").value.trim().toLowerCase();
+    if (!username) { alert("กรุณาใส่ username"); return; }
 
-let username=document.getElementById("pg-username").value.trim().toLowerCase();
+    btn.disabled = true;
+    document.getElementById("pg-username").disabled = true;
 
-if(!username){
-alert("กรุณาใส่ username");
-return;
-}
+    setText("กำลังตรวจสอบสิทธิ์...");
 
-btn.disabled=true;
-document.getElementById("pg-username").disabled=true;
+    try {
+        const token = Math.random().toString(36).substring(2);
+        const res = await fetch(`${API}?username=${username}&token=${token}`);
+        const data = await res.json();
 
-setText("กำลังหมุน...");
+        if (!data.success) {
+            setText(data.error);
+            btn.disabled = false;
+            document.getElementById("pg-username").disabled = false;
+            return;
+        }
 
-startRolling();
+        // --- ตรวจสอบว่าเล่นไปแล้ว ---
+        if (data.played) {
+            showPrizeNumber(data.prize); // แสดงตัวเลขรางวัลเดิม
+            setText(`คุณเคยเล่นไปแล้ว!\nUsername ${username}\nได้รับรางวัล ${data.prize} บาท`);
+            btn.disabled = false;
+            return; // หยุดการหมุน slot ใหม่
+        }
 
-try{
+        // --- ยังไม่เคยเล่น --- เริ่มหมุน slot
+        setText("กำลังหมุน...");
+        startRolling();
+        await spinToResult(data.prize);
 
-const token=Math.random().toString(36).substring(2);
+        if (data.prize === "ไม่ได้ของรางวัล") {
+            setText(`Username ${username}\nเสียใจค่ะ คุณไม่ได้รับรางวัล`);
+        } else {
+            setText(`🎉 ยินดีด้วย!\nUsername ${username}\nได้รับ ${data.prize} บาท`);
+            confettiExplosion();
+            addLineButton();
+        }
 
-const res=await fetch(API+"?username="+username+"&token="+token);
-const data=await res.json();
-
-stopRolling();
-
-if(!data.success){
-setText(data.error);
-btn.disabled=false;
-return;
-}
-
-await spinToResult(data.prize);
-
-if(data.prize==="ไม่ได้ของรางวัล"){
-setText("Username "+username+"\nเสียใจด้วย คุณไม่ได้รับรางวัล");
-}else{
-setText("🎉 ยินดีด้วย!\nUsername "+username+"\nได้รับ "+data.prize+" บาท");
-confettiExplosion();
-addLineButton();
-}
-
-}catch(e){
-
-setText("เกิดข้อผิดพลาด");
-
-}
-
+    } catch (e) {
+        setText("เกิดข้อผิดพลาด");
+    } finally {
+        btn.disabled = false;
+        document.getElementById("pg-username").disabled = false;
+    }
 }
 
 function setText(t){
