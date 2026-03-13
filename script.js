@@ -88,22 +88,21 @@ async function playGame() {
     setTimeout(() => {
       const delayUntilText = stopRollingGradual(data.prize || 0);
 
-      setTimeout(() => {
-        if (data.prize > 0) {
-          // ข้อความแจ้งรางวัล + คำแนะนำแคปหน้าจอ
-          setText(
-            `ยินดีด้วย! คุณได้รับ ${data.prize} บาท\n` +
-            `กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ`,
-            'success'
-          );
-          launchConfetti();
-          addLineButton();
-        } else {
-          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!", 'error');
-        }
+     setTimeout(() => {
+  if (data.prize > 0) {
+    setText(
+      `ยินดีด้วย! คุณได้รับ ${data.prize} บาท\n` +
+      `กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ`,
+      'success'
+    );
+    launchConfetti();
+    addLineButton();
+  } else {
+    setText("เสียใจด้วย คุณไม่ได้รางวัล ลองใหม่ครั้งหน้า!", 'error');
+  }
 
-        renderWinners(data.recentWinners || []);
-      }, delayUntilText);
+  renderWinners(data.recentWinners || []);
+}, delayUntilText);
 
     }, 2000);
 
@@ -124,20 +123,42 @@ function setText(message, type = 'normal') {
 
   let html = message;
 
-  // ทำให้คำว่า "แคปหน้าจอนี้" เด่นขึ้นในกรณี success
-  if (type === 'success' && message.includes("แคปหน้าจอนี้")) {
-    html = message.replace(
-      "กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ",
-      '<strong style="color:#ffeb3b; font-size:1.1em;">กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ</strong>'
-    );
+  // ถ้าเป็น success และมีข้อความยินดี → ใส่กรอบทองแวววาว + ย้ายคำแคปหน้าจอลงบรรทัดล่าง + ตัวเล็ก
+  if (type === 'success' && message.includes("ยินดีด้วย")) {
+    const parts = message.split("\n");
+    const mainText = parts[0] || message; // บรรทัดแรก (ยินดีด้วย...)
+    const subText = parts[1] || "";       // บรรทัดสอง (กรุณาแคป...)
+
+    html = `
+      <div style="
+        background: linear-gradient(135deg, #ffd700, #ffea80, #ffd700);
+        padding: 12px 20px;
+        border-radius: 16px;
+        border: 3px solid #ffcc00;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.5);
+        display: inline-block;
+        margin: 10px auto;
+        text-align: center;
+        font-weight: bold;
+        color: #1a1a1a;
+        font-size: 1.3em;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+      ">
+        ${mainText}
+      </div>
+      <div style="font-size: 0.85em; color: #ffeb3b; margin-top: 8px; opacity: 0.9;">
+        ${subText}
+      </div>
+    `;
   }
 
   display.innerHTML = html;
 
+  // สีพื้นฐานตาม type (สำหรับกรณีอื่น ๆ)
   display.style.color = "#fff";
   display.style.fontWeight = "normal";
   display.style.textShadow = "1px 1px 3px #000";
-  display.style.lineHeight = "1.5";
+  display.style.lineHeight = "1.6";
 
   if (type === 'error') {
     display.style.color = "#ff4d4d";
