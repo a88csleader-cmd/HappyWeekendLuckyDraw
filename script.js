@@ -234,7 +234,7 @@ function stopRollingGradual(prize) {
   let currentDelay = 0;
 
   stopOrder.forEach((index, step) => {
-    const stopDelay = currentDelay + (step * 1200);
+    const stopDelay = currentDelay + (step * 700);
 
     setTimeout(() => {
       if (spinIntervals[index]) {
@@ -258,10 +258,10 @@ function stopRollingGradual(prize) {
 
     }, stopDelay);
 
-    currentDelay = stopDelay + 1400;
+    currentDelay = stopDelay + 800;
   });
 
-  return currentDelay + 1000;
+  return currentDelay + 800;
 }
 
 function launchConfetti() {
