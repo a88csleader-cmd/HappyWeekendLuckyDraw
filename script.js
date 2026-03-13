@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbyXs5Nahf2HqJpiBzh2cXkG-vtcI0Puh7Do3utePtM6HAlDDoD_UqEsvNkzI0hXE4fN3w/exec"; // เปลี่ยนเป็น URL ล่าสุดของคุณ
+const API = "https://script.google.com/macros/s/AKfycbyXs5Nahf2HqJpiBzh2cXkG-vtcI0Puh7Do3utePtM6HAlDDoD_UqEsvNkzI0hXE4fN3w/exec"; // เปลี่ยนเป็น URL Web App ล่าสุดของคุณ
 const LINE_LINK = "https://lin.ee/Nb2TD8R";
 
 document.getElementById("pg-start-btn").addEventListener("click", playGame);
@@ -6,6 +6,9 @@ document.getElementById("pg-start-btn").addEventListener("click", playGame);
 let spinIntervals = new Array(4).fill(null);
 const slots = document.querySelectorAll(".slot");
 
+// ────────────────────────────────────────────────
+// ฟังก์ชันหลัก: เริ่มเกม
+// ────────────────────────────────────────────────
 async function playGame() {
   const usernameInput = document.getElementById("pg-username");
   const username = usernameInput.value.trim().toLowerCase();
@@ -46,6 +49,9 @@ async function playGame() {
       throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
     }
 
+    // ────────────────────────────────────────────────
+    // กรณี error (ไม่มีสิทธิ์) → แสดง 0000 + ข้อความแดงทันที
+    // ────────────────────────────────────────────────
     if (data.error) {
       stopAllRolling();
       setText(data.error, 'error');
@@ -59,6 +65,9 @@ async function playGame() {
       return;
     }
 
+    // ────────────────────────────────────────────────
+    // กรณีเคยเล่นแล้ว → แสดงรางวัลเก่าบนสล็อต + ข้อความเหลือง
+    // ────────────────────────────────────────────────
     if (data.alreadyPlayed) {
       stopAllRolling();
       setText(`คุณเคยเล่นแล้ว ได้ ${data.prize} บาท`, 'info');
@@ -73,16 +82,24 @@ async function playGame() {
       return;
     }
 
+    // ────────────────────────────────────────────────
+    // กรณีเล่นได้ปกติ → หมุนต่อ แล้วหยุดทีละหลัก
+    // ────────────────────────────────────────────────
     setTimeout(() => {
       const delayUntilText = stopRollingGradual(data.prize || 0);
 
       setTimeout(() => {
         if (data.prize > 0) {
-          setText(`ยินดีด้วย! คุณได้รับ ${data.prize} บาท`, 'success');
+          // ข้อความแจ้งรางวัล + คำแนะนำแคปหน้าจอ
+          setText(
+            `ยินดีด้วย! คุณได้รับ ${data.prize} บาท\n` +
+            `กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ`,
+            'success'
+          );
           launchConfetti();
           addLineButton();
         } else {
-          setText("เสียใจด้วย คุณไม่ได้รางวัล ลองใหม่ครั้งหน้า!", 'error');
+          setText("เสียใจด้วย รางวัลหมดแล้ว ลองใหม่ครั้งหน้า!", 'error');
         }
 
         renderWinners(data.recentWinners || []);
@@ -99,13 +116,28 @@ async function playGame() {
   }
 }
 
-function setText(text, type = 'normal') {
+// ────────────────────────────────────────────────
+// แสดงข้อความ + รองรับสี + HTML สำหรับคำเตือนแคปหน้าจอ
+// ────────────────────────────────────────────────
+function setText(message, type = 'normal') {
   const display = document.getElementById("pg-prize-display");
-  display.textContent = text;
+
+  let html = message;
+
+  // ทำให้คำว่า "แคปหน้าจอนี้" เด่นขึ้นในกรณี success
+  if (type === 'success' && message.includes("แคปหน้าจอนี้")) {
+    html = message.replace(
+      "กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ",
+      '<strong style="color:#ffeb3b; font-size:1.1em;">กรุณาแคปหน้าจอนี้ไว้ เพื่อแจ้งรับรางวัลกับแอดมินทาง LINE นะคะ</strong>'
+    );
+  }
+
+  display.innerHTML = html;
 
   display.style.color = "#fff";
   display.style.fontWeight = "normal";
   display.style.textShadow = "1px 1px 3px #000";
+  display.style.lineHeight = "1.5";
 
   if (type === 'error') {
     display.style.color = "#ff4d4d";
@@ -121,6 +153,9 @@ function setText(text, type = 'normal') {
   }
 }
 
+// ────────────────────────────────────────────────
+// ฟังก์ชันอื่น ๆ (คงเดิม)
+// ────────────────────────────────────────────────
 function addLineButton() {
   removeLineButton();
   const container = document.getElementById("prize-game-container");
